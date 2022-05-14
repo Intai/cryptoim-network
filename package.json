@@ -1,0 +1,68 @@
+{
+  "name": "cyphrim.com",
+  "version": "1.0.0",
+  "description": "CyphrIM",
+  "license": "MIT",
+  "homepage": "https://cyphrim.com",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Intai/cyphrim-com.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Intai/cyphrim-com/issues"
+  },
+  "engines": {
+    "node": "14"
+  },
+  "scripts": {
+    "build": "gulp build",
+    "heroku-postbuild": "npm prune --production",
+    "start": "pm2 start --no-daemon dist/server.js"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.17.9",
+    "baconjs": "^3.0.17",
+    "bdux": "^18.0.4",
+    "bdux-logger": "^18.0.0",
+    "bdux-react-router": "^18.0.4",
+    "bdux-timetravel": "^18.0.1",
+    "bdux-universal": "^18.0.0",
+    "blueimp-md5": "^2.19.0",
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
+    "gun": "^0.2020.1237",
+    "history": "^5.3.0",
+    "pm2": "^5.2.0",
+    "qr-scanner": "^1.4.1",
+    "qrcode": "^1.5.0",
+    "ramda": "^0.28.0",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-router": "^6.3.0",
+    "react-router-dom": "^6.3.0",
+    "styled-components": "^5.3.5",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/plugin-transform-runtime": "^7.17.10",
+    "@babel/preset-env": "^7.17.10",
+    "@babel/preset-react": "^7.16.7",
+    "babel-loader": "^8.2.5",
+    "babel-plugin-styled-components": "^2.0.7",
+    "del": "^6.0.0",
+    "eslint": "^8.15.0",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.29.4",
+    "eslint-plugin-react-hooks": "^4.5.0",
+    "eslint-webpack-plugin": "^3.1.1",
+    "fancy-log": "^2.0.0",
+    "gulp": "^4.0.2",
+    "html-webpack-plugin": "^5.5.0",
+    "plugin-error": "^1.0.1",
+    "webpack": "^5.72.1",
+    "webpack-bundle-analyzer": "^4.5.0",
+    "webpack-dev-server": "^4.9.0",
+    "webpack-stream": "^7.0.0"
+  }
+}
