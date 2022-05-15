@@ -8,6 +8,7 @@ import {
   Routes,
   Route,
 } from 'bdux-react-router'
+import Home from './home'
 import QrCode from './qr-code'
 import Conversation from './conversation'
 import Invite from './invite'
@@ -32,12 +33,12 @@ const ContainerOutlet = () => (
   </Container>
 )
 
-const InviteForMdAndUp = () => {
+const HomeForMdAndUp = () => {
   const { isBreakpointUp } = useResponsive()
 
   return isBreakpointUp('md') && (
     <Container>
-      <Invite />
+      <Home />
     </Container>
   )
 }
@@ -59,7 +60,7 @@ const PanelRight = props => {
         <Route
           // don't render the right panel on sm and md screens
           // when showing a list of conversations.
-          element={<InviteForMdAndUp />}
+          element={<HomeForMdAndUp />}
           path="/conversations"
         />
         <Route
@@ -87,11 +88,11 @@ const PanelRight = props => {
             path="conversation/:converseUuid"
           />
           <Route
-            element={<Invite />}
+            element={<Home />}
             path="*"
           />
           <Route
-            element={<Invite />}
+            element={<Home />}
             index
           />
         </Route>

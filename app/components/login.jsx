@@ -6,8 +6,8 @@ import TextInput from './text-input'
 import Button from './button'
 import LoginScan from './login-scan'
 import { primaryBackground, alertBackground, secondaryBorder } from './color'
-import * as LoginAction from '../actions/login-action'
 import { getStaticUrl } from '../utils/common-util'
+import * as LoginAction from '../actions/login-action'
 
 const Container = styled.div`
   display: flex;
