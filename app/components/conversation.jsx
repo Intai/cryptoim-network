@@ -1,5 +1,5 @@
 import { filter, find, pipe, prop, propEq, reduce, sortBy } from 'ramda'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
@@ -7,6 +7,7 @@ import PanelHeader from './panel-header'
 import Message from './message'
 import MessageInput from './message-input'
 import { scrollbar } from './scrollbar'
+import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
@@ -91,6 +92,18 @@ const Conversation = (props) => {
   const messages = useMemo(() => (
     filterSortMessages(loginPub, conversePub)(messageList.messages)
   ), [conversePub, loginPub, messageList.messages])
+
+  useEffect(() => {
+    dispatch(ConversationAction.selectConversation(conversation))
+  // when selecting a different conversation.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation])
+
+  useEffect(() => () => {
+    dispatch(ConversationAction.deselectConversation())
+  // willUnmount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!conversation || !contact) {
     // unknown conversation.

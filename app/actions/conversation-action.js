@@ -1,10 +1,13 @@
 import {
+  End,
   fromBinder,
   fromCallback,
   mergeAll,
   once,
 } from 'baconjs'
+import { LocationAction } from 'bdux-react-router'
 import ActionTypes from './action-types'
+import { canUseDOM, getStaticUrl } from '../utils/common-util'
 import {
   createConversation,
   getConversation,
@@ -12,6 +15,7 @@ import {
   getMyMessage,
   sendMessageToUser,
   sendNextMessage,
+  updateConversationLastTimestamp,
   expireConversationMessage,
 } from '../utils/conversation-util'
 
@@ -55,6 +59,16 @@ export const init = () => mergeAll(
   })
 )
 
+export const selectConversation = conversation => conversation && ({
+  type: ActionTypes.CONVERSATION_SELECT,
+  conversation,
+})
+
+export const deselectConversation = () => ({
+  type: ActionTypes.CONVERSATION_SELECT,
+  conversation: null,
+})
+
 export const expireConversation = (converseUuid, message) => {
   expireConversationMessage(converseUuid, message)
   return {
@@ -84,6 +98,31 @@ export const sendMessage = (nextPair, conversePub, content) => mergeAll(
       }
     })
   })
+)
+
+export const updateLastTimestamp = (conversation, lastTimestamp) => {
+  // update the conversation's lastTimestamp,
+  // so we can figure out which messages are new.
+  updateConversationLastTimestamp(conversation.uuid, lastTimestamp)
+}
+
+export const notifyNewMessage = (contact, conversation, message) => (
+  canUseDOM()
+    && Notification.permission === 'granted'
+    && fromBinder(sink => {
+      const { alias, name } = contact
+      const notification = new Notification(`New message from ${name || alias}`, {
+        tag: message.uuid,
+        body: message.content,
+        icon: getStaticUrl('/favicon/favicon-32x32.png'),
+      })
+
+      notification.addEventListener('click', () => {
+        notification.close()
+        sink(LocationAction.push(`/conversation/${conversation.uuid}`))
+        sink(new End())
+      })
+    })
 )
 
 export const sendRequest = (publicKey, text) => mergeAll(

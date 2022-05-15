@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react'
+import { inc } from 'ramda'
+import React, { useCallback, useState } from 'react'
 import styled from 'styled-components'
 import { useBdux } from 'bdux/hook'
 import Button from './button'
@@ -8,6 +9,7 @@ import ConversationList from './conversation-list'
 import { secondaryBackground } from './color'
 import { scrollbar } from './scrollbar'
 import { useResponsive } from '../hooks/responsive'
+import { canUseDOM } from '../utils/common-util'
 import * as LoginAction from '../actions/login-action'
 
 const Container = styled.div`
@@ -26,6 +28,10 @@ const Scrollbar = styled.div`
   flex: 1;
 `
 
+const NotifButton = styled(Button)`
+  margin: 15px 15px 0 15px;
+`
+
 const LogoutButton = styled(Button)`
   margin: 15px;
 `
@@ -34,6 +40,13 @@ const PanelLeftLayout = props => {
   const { isMdAndUpOnly } = props
   const { dispatch } = useBdux(props)
   const { isBreakpointUp, isBreakpointDown } = useResponsive()
+  const [, forceUpdate] = useState(0)
+
+  const handleEnableNotification = useCallback(() => {
+    Notification.requestPermission().then(() => {
+      forceUpdate(inc)
+    })
+  }, [])
 
   const handleLogout = useCallback(() => {
     dispatch(LoginAction.logout())
@@ -47,6 +60,16 @@ const PanelLeftLayout = props => {
         <RequestList />
         <ConversationList />
       </Scrollbar>
+
+      {canUseDOM() && Notification.permission === 'default' && (
+        <NotifButton
+          type="button"
+          kind="secondary"
+          onClick={handleEnableNotification}
+        >
+          {'Enable notifications'}
+        </NotifButton>
+      )}
 
       <LogoutButton
         type="button"

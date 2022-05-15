@@ -11,9 +11,11 @@ import {
   when,
 } from 'ramda'
 import { Bus } from 'baconjs'
-import ActionTypes from '../actions/action-types'
-import StoreNames from '../stores/store-names'
 import { createStore } from 'bdux/store'
+import StoreNames from './store-names'
+import ContactListStore from './contact-list-store'
+import ActionTypes from '../actions/action-types'
+import * as ConversationAction from '../actions/conversation-action'
 
 const isAction = pathEq(
   ['action', 'type'],
@@ -42,6 +44,7 @@ const whenInit = when(
     ({ state }) => ({
       state: {
         conversations: state?.conversations || [],
+        selected: null,
         errors: {},
       },
     }),
@@ -58,6 +61,59 @@ const whenAppend = when(
       },
     }),
   ])
+)
+
+const whenSelect = when(
+  isAction(ActionTypes.CONVERSATION_SELECT),
+  converge(mergeDeepRight, [
+    identity,
+    ({ action: { conversation } }) => ({
+      state: {
+        selected: conversation,
+      },
+    }),
+  ])
+)
+
+const isMessageInConversation = message => conversation => {
+  const { conversePub } = conversation
+  const { conversePub: messageConversePub, fromPub } = message
+
+  // message from myself in the conversation.
+  return conversePub === messageConversePub
+    // or from the other user.
+    || conversePub === fromPub
+}
+
+const whenAppendMessage = when(
+  isAction(ActionTypes.MESSAGE_APPEND),
+  args => {
+    const { state, action: { message }, contactList, dispatch } = args
+    const { conversations, selected } = state
+    const { fromPub, timestamp } = message
+
+    // if the message is in the currently selected conversation.
+    if (selected && isMessageInConversation(message)(selected)) {
+      // and the timestamp is newer.
+      const currentTimestamp = selected.lastTimestamp
+      if (!currentTimestamp || timestamp > currentTimestamp) {
+        // update the lastTimestamp in the conversation.
+        dispatch(ConversationAction.updateLastTimestamp(selected, timestamp))
+      }
+    } else {
+      const sender = find(propEq('pub', fromPub), contactList.contacts)
+      const conversation = find(isMessageInConversation(message), conversations)
+
+      if (sender && conversation
+        // if the message is newer than the lastTimestamp in the conversation.
+        && (!conversation.lastTimestamp || timestamp > conversation.lastTimestamp)) {
+        // create a browser notification.
+        dispatch(ConversationAction.notifyNewMessage(sender, conversation, message))
+      }
+    }
+
+    return args
+  }
 )
 
 const whenRemove = when(
@@ -107,6 +163,8 @@ export const getReducer = () => {
     output: reducerStream
       .map(whenInit)
       .map(whenAppend)
+      .map(whenSelect)
+      .map(whenAppendMessage)
       .map(whenRemove)
       .map(whenSendRequest)
       .map(whenSendRequestError)
@@ -115,5 +173,7 @@ export const getReducer = () => {
 }
 
 export default createStore(
-  StoreNames.CONVERSATION_LIST, getReducer,
+  StoreNames.CONVERSATION_LIST, getReducer, {
+    contactList: ContactListStore,
+  }
 )

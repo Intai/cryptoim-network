@@ -130,7 +130,7 @@ export const sendMessageToUser = (toPub, conversePub, content, cb) => {
 const uuidCache = {}
 
 export const createConversation = (message, cb) => {
-  const { conversePub, fromPub, nextPair } = message
+  const { conversePub, fromPub, nextPair, timestamp } = message
   const targetPub = (conversePub !== getAuthPair().pub) ? conversePub : fromPub
   const uuid = uuidCache[targetPub] || uuidv4()
   uuidCache[targetPub] = uuid
@@ -138,6 +138,7 @@ export const createConversation = (message, cb) => {
     uuid,
     conversePub: targetPub,
     nextPair,
+    lastTimestamp: timestamp,
   }
 
   // encrypt the conversation, so others can not trace.
@@ -185,6 +186,28 @@ export const getConversationMessage = cb => {
   getConversation(conversation => {
     // get messages one by one, also when created or updated.
     getNextMessageRecursive(conversation.nextPair, cb)
+  })
+}
+
+export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => {
+  const converseNode = authUser
+    .get('conversations')
+    .get(`conversation-${converseUuid}`)
+
+  converseNode.once(encrypted => {
+    if (encrypted) {
+      Sea.decrypt(encrypted, getAuthPair()).then(data => {
+        const conversation = {
+          ...data,
+          lastTimestamp,
+        }
+
+        // update the pair to the first message in the conversation.
+        Sea.encrypt(conversation, getAuthPair()).then(encrypted => {
+          converseNode.put(encrypted)
+        })
+      })
+    }
   })
 }
 
