@@ -5,11 +5,40 @@ import { useBdux } from 'bdux/hook'
 import TextInput from './text-input'
 import Button from './button'
 import LoginScan from './login-scan'
+import PromoFeatures from './promo-features'
 import { primaryBackground, alertBackground, secondaryBorder } from './color'
+import { useResponsive } from '../hooks/responsive'
 import { getStaticUrl } from '../utils/common-util'
 import * as LoginAction from '../actions/login-action'
 
 const Container = styled.div`
+  display: flex;
+  justify-content: center;
+`
+
+const PromoContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`
+
+const PromoFeaturesBelowLogo = styled(PromoFeatures)`
+  margin: 98px 0 30px 45px;
+  max-width: 320px;
+
+  ${({ isLgAndUp }) => isLgAndUp && `
+    margin-top: 80px;
+    max-width: 360px;
+  `}
+`
+
+const PromoFeaturesBelowForm = styled(PromoFeatures)`
+  margin: 45px 0 15px 0;
+  width: 270px;
+  max-width: calc(100vw - 30px);
+`
+
+const LoginContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -20,7 +49,10 @@ const Container = styled.div`
 const Logo = styled.img`
   max-width: 180px;
   flex: 0 0 calc(180px - 36px);
-  object-position: 0 -18px;
+`
+
+const LoginForm = styled.form`
+  padding-bottom: 15px;
 `
 
 const ErrorMessage = styled.div`
@@ -64,6 +96,7 @@ const getLoginLabel = login => {
 const Login = (props) => {
   const { login } = props
   const { dispatch } = useBdux(props)
+  const { isBreakpointUp, isBreakpointDown } = useResponsive()
   const [isScanning, setIsScanning] = useState(false)
   const hasRadata = login?.hasRadata
 
@@ -102,67 +135,79 @@ const Login = (props) => {
 
   if (isScanning) {
     return (
-      <Container>
+      <LoginContainer>
         <LoginScan
           login={login}
           onCancel={handleToggleScan}
         />
-      </Container>
+      </LoginContainer>
     )
   }
   return login && (
     <Container>
-      <Logo src={getStaticUrl('/images/logo.png')} />
-      <form onSubmit={handleLogin}>
-        <Button
-          type="button"
-          kind={hasRadata ? 'primary' : 'secondary'}
-          onClick={handleToggleScan}
-        >
-          {'Scan QR code'}
-        </Button>
+      <LoginContainer>
+        <Logo src={getStaticUrl('/images/logo.png')} />
+        <LoginForm onSubmit={handleLogin}>
+          <Button
+            type="button"
+            kind={hasRadata ? 'primary' : 'secondary'}
+            onClick={handleToggleScan}
+          >
+            {'Scan QR code'}
+          </Button>
 
-        <Button
-          type="button"
-          kind={hasRadata ? 'secondary' : 'primary'}
-          onClick={handleSkip}
-        >
-          {'Skip'}
-        </Button>
+          <Button
+            type="button"
+            kind={hasRadata ? 'secondary' : 'primary'}
+            onClick={handleSkip}
+          >
+            {'Skip'}
+          </Button>
 
-        <Separator>
-          <SeparatorText>OR</SeparatorText>
-        </Separator>
+          <Separator>
+            <SeparatorText>OR</SeparatorText>
+          </Separator>
 
-        {login?.err && (
-          <ErrorMessage>⚠️  {login.err}</ErrorMessage>
-        )}
+          {login?.err && (
+            <ErrorMessage>⚠️  {login.err}</ErrorMessage>
+          )}
 
-        <TextInput
-          name="alias"
-          placeholder="Alias"
-          autoComplete="off"
-          onBlur={handleChangeAlias}
-        />
-        <TextInput
-          type="password"
-          name="password"
-          placeholder="Password"
-          autoComplete="off"
-        />
-        <TextInput
-          type="password"
-          name="confirm"
-          placeholder="Confirm Password"
-          autoComplete="off"
-        />
-        <Button
-          type="submit"
-          kind="secondary"
-        >
-          {getLoginLabel(login)}
-        </Button>
-      </form>
+          <TextInput
+            name="alias"
+            placeholder="Alias"
+            autoComplete="off"
+            onBlur={handleChangeAlias}
+          />
+          <TextInput
+            type="password"
+            name="password"
+            placeholder="Password"
+            autoComplete="off"
+          />
+          <TextInput
+            type="password"
+            name="confirm"
+            placeholder="Confirm Password"
+            autoComplete="off"
+          />
+          <Button
+            type="submit"
+            kind="secondary"
+          >
+            {getLoginLabel(login)}
+          </Button>
+
+          {isBreakpointDown('md') && (
+            <PromoFeaturesBelowForm />
+          )}
+        </LoginForm>
+      </LoginContainer>
+
+      {isBreakpointUp('md') && (
+        <PromoContainer>
+          <PromoFeaturesBelowLogo isLgAndUp={isBreakpointUp('lg')} />
+        </PromoContainer>
+      )}
     </Container>
   )
 }
