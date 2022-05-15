@@ -8,6 +8,7 @@ import { getStaticUrl } from '../utils/common-util'
 const Scrollbar = styled.div`
   ${scrollbar}
 `
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;

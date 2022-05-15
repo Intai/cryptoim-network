@@ -8,7 +8,12 @@ import PanelHeader from './panel-header'
 import Anchor from './anchor'
 import Button from './button'
 import { fontLarge } from './typography'
+import { scrollbar } from './scrollbar'
 import LoginStore from '../stores/login-store'
+
+const Scrollbar = styled.div`
+  ${scrollbar}
+`
 
 const Container = styled.div`
   flex: 1;
@@ -63,29 +68,31 @@ const QrCode = (props) => {
   return (
     <>
       <PanelHeader>Login QR code</PanelHeader>
-      <Container>
-        <Canvas ref={setCanvasNode} />
+      <Scrollbar>
+        <Container>
+          <Canvas ref={setCanvasNode} />
 
-        <Message>
-          {'This is your login. Please '}
-          <Anchor
-            href={getHref(canvasRef.current)}
-            download="CyphrIM login QR code.png"
-            kind="primary"
+          <Message>
+            {'This is your login. Please '}
+            <Anchor
+              href={getHref(canvasRef.current)}
+              download="CyphrIM login QR code.png"
+              kind="primary"
+            >
+              {'Download'}
+            </Anchor>
+            {' and store securely. Anyone has the QR code can login as you.'}
+          </Message>
+
+          <Button
+            type="button"
+            kind="secondary"
+            onClick={handleContinue}
           >
-            {'Download'}
-          </Anchor>
-          {' and store securely. Anyone has the QR code can login as you.'}
-        </Message>
-
-        <Button
-          type="button"
-          kind="secondary"
-          onClick={handleContinue}
-        >
-          {'Done'}
-        </Button>
-      </Container>
+            {'Done'}
+          </Button>
+        </Container>
+      </Scrollbar>
     </>
   )
 }

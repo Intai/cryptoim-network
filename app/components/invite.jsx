@@ -7,8 +7,13 @@ import PanelHeader from './panel-header'
 import Anchor from './anchor'
 import ContactList from './contact-list'
 import { fontLarge } from './typography'
+import { scrollbar } from './scrollbar'
 import { getWebUrl } from '../utils/common-util'
 import LoginStore from '../stores/login-store'
+
+const Scrollbar = styled.div`
+  ${scrollbar}
+`
 
 const Canvas = styled.canvas`
   max-width: 100%;
@@ -25,7 +30,7 @@ const InviteMessageWrap = styled.div`
 const InviteMessage = styled.div`
   ${fontLarge}
   display: inline-block;
-  padding: 15px 20px;
+  padding: 15px 20px 30px 20px;
   text-align: left;
   max-width: 100%;
   width: 330px;
@@ -73,29 +78,31 @@ const Invite = (props) => {
   return (
     <>
       <PanelHeader>New conversation</PanelHeader>
-      <Canvas ref={setCanvasNode} />
+      <Scrollbar>
+        <Canvas ref={setCanvasNode} />
 
-      <InviteMessageWrap>
-        <InviteMessage>
-          {'This is your invite QR code. To invite a new contact. Please either '}
-          <InviteAnchor
-            href="/invite/scan"
-            kind="primary"
-            onClick={handleInviteScan}
-          >
-            {'Scan their invite QR code'}
-          </InviteAnchor>
-          {' or '}
-          <InviteAnchor
-            href={`mailto:?subject=CyphrIM%20invite${getFromText(profileName)}&body=${inviteUrl}`}
-            kind="primary"
-          >
-            {'Email your invite link'}
-          </InviteAnchor>
-        </InviteMessage>
-      </InviteMessageWrap>
+        <InviteMessageWrap>
+          <InviteMessage>
+            {'This is your invite QR code. To invite a new contact. Please either '}
+            <InviteAnchor
+              href="/invite/scan"
+              kind="primary"
+              onClick={handleInviteScan}
+            >
+              {'Scan their invite QR code'}
+            </InviteAnchor>
+            {' or '}
+            <InviteAnchor
+              href={`mailto:?subject=CyphrIM%20invite${getFromText(profileName)}&body=${inviteUrl}`}
+              kind="primary"
+            >
+              {'Email your invite link'}
+            </InviteAnchor>
+          </InviteMessage>
+        </InviteMessageWrap>
 
-      <ContactList />
+        <ContactList />
+      </Scrollbar>
     </>
   )
 }
