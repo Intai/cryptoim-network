@@ -1,5 +1,5 @@
-import { filter, find, pipe, prop, propEq, reduce, sortBy } from 'ramda'
-import React, { useEffect, useMemo } from 'react'
+import { filter, find, last, pipe, prop, propEq, reduce, sortBy } from 'ramda'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { useParams } from 'react-router'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
@@ -75,6 +75,8 @@ const useBdux = createUseBdux({
 const Conversation = (props) => {
   const { converseUuid } = useParams()
   const { state: { login, contactList, conversationList, messageList }, dispatch } = useBdux(props)
+  const { messages } = messageList
+  const scrollbarRef = useRef()
 
   // find the conversation by uuid in url.
   const conversation = useMemo(() => (
@@ -89,12 +91,12 @@ const Conversation = (props) => {
 
   // filter and sort the messages in the conversation.
   const { pair: { pub: loginPub } } = login
-  const messages = useMemo(() => (
-    filterSortMessages(loginPub, conversePub)(messageList.messages)
-  ), [conversePub, loginPub, messageList.messages])
+  const filteredMessages = useMemo(() => (
+    filterSortMessages(loginPub, conversePub)(messages)
+  ), [conversePub, loginPub, messages])
 
   useEffect(() => {
-    dispatch(ConversationAction.selectConversation(conversation))
+    dispatch(ConversationAction.selectConversation(conversation, last(filteredMessages)?.timestamp))
   // when selecting a different conversation.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversation])
@@ -104,6 +106,16 @@ const Conversation = (props) => {
   // willUnmount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    const { current: scrollbar } = scrollbarRef
+    if (scrollbar) {
+      // scroll to the bottom.
+      scrollbar.scrollTop = scrollbar.scrollHeight
+    }
+  // either when switching between conversations,
+  // or when there are new messages.
+  }, [converseUuid, filteredMessages.length])
 
   if (!conversation || !contact) {
     // unknown conversation.
@@ -115,7 +127,7 @@ const Conversation = (props) => {
     <>
       <PanelHeader>{getContactLabel(contact)}</PanelHeader>
       <Container>
-        <MessageList>
+        <MessageList ref={scrollbarRef}>
           {renderMessages((message, prev) => (
             <Message
               key={message.uuid}
@@ -124,12 +136,12 @@ const Conversation = (props) => {
               message={message}
               prev={prev}
             />
-          ), messages)}
+          ), filteredMessages)}
         </MessageList>
 
         <MessageInput
           conversation={conversation}
-          messages={messages}
+          messages={filteredMessages}
           dispatch={dispatch}
         />
       </Container>

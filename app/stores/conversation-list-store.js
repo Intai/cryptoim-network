@@ -1,5 +1,6 @@
 import {
   converge,
+  equals,
   find,
   findIndex,
   identity,
@@ -8,6 +9,7 @@ import {
   prop,
   propEq,
   remove,
+  update,
   when,
 } from 'ramda'
 import { Bus } from 'baconjs'
@@ -23,10 +25,16 @@ const isAction = pathEq(
 
 const appendConversation = (conversation, conversations) => {
   const source = conversations || []
-  const dup = find(propEq('conversePub', conversation.conversePub), source)
-  return dup
-    ? source
-    : source.concat(conversation)
+  const current = find(propEq('conversePub', conversation.conversePub), source)
+
+  if (!current) {
+    return source.concat(conversation)
+  }
+  if (!equals(current, conversation)) {
+    const index = source.indexOf(current)
+    return update(index, conversation, source)
+  }
+  return source
 }
 
 const removeConversation = (conversation, conversations) => {
@@ -67,11 +75,20 @@ const whenSelect = when(
   isAction(ActionTypes.CONVERSATION_SELECT),
   converge(mergeDeepRight, [
     identity,
-    ({ action: { conversation } }) => ({
-      state: {
-        selected: conversation,
-      },
-    }),
+    ({ action: { conversation, timestamp }, dispatch }) => {
+      // if the last message's timestamp is newer.
+      const lastTimestamp = conversation?.lastTimestamp
+      if (timestamp && lastTimestamp && timestamp > lastTimestamp) {
+        // update the lastTimestamp in the conversation.
+        dispatch(ConversationAction.updateLastTimestamp(conversation, timestamp))
+      }
+
+      return {
+        state: {
+          selected: conversation,
+        },
+      }
+    },
   ])
 )
 

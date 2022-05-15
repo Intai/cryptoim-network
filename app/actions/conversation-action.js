@@ -59,9 +59,10 @@ export const init = () => mergeAll(
   })
 )
 
-export const selectConversation = conversation => conversation && ({
+export const selectConversation = (conversation, timestamp) => conversation && ({
   type: ActionTypes.CONVERSATION_SELECT,
   conversation,
+  timestamp,
 })
 
 export const deselectConversation = () => ({
