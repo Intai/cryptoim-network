@@ -1,0 +1,61 @@
+{
+  "executionRoleArn": "arn:aws:iam::501045672667:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "nodejs",
+      "image": "<CONTAINER_IMAGE_NODEJS>",
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "secretOptions": null,
+        "options": {
+          "awslogs-group": "/ecs/cyphrim",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "environment": [
+        {
+          "name": "CONTAINER_IMAGE",
+          "value": "<CONTAINER_IMAGE_NODEJS>"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "value": "https://cyphrim.com"
+        },
+        {
+          "name": "GUN_DOMAIN",
+          "value": "https://cyphrim.com"
+        },
+      ]
+    },
+    {
+      "name": "nginx",
+      "image": "<CONTAINER_IMAGE_NGINX>",
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "secretOptions": null,
+        "options": {
+          "awslogs-group": "/ecs/cyphrim",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "portMappings": [
+        {
+          "hostPort": 443,
+          "protocol": "tcp",
+          "containerPort": 443
+        }
+      ]
+    }
+  ],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "networkMode": "awsvpc",
+  "cpu": "256",
+  "memory": "512",
+  "family": "cyphrim"
+}

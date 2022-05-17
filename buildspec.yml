@@ -1,0 +1,36 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - REGISTRY_URI="${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com"
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REGISTRY_URI
+      - echo Triggered by $CODEBUILD_WEBHOOK_TRIGGER
+      - if [ $CODEBUILD_WEBHOOK_TRIGGER ]; then
+          IMAGE_TAG_TYPE="$(echo $CODEBUILD_WEBHOOK_TRIGGER | cut -d'/' -f 1)";
+          IMAGE_TAG_NAME="$(echo $CODEBUILD_WEBHOOK_TRIGGER | cut -d'/' -f 2- | tr / -)";
+        else
+          IMAGE_TAG_TYPE="branch";
+          IMAGE_TAG_NAME=$CODEBUILD_SOURCE_VERSION; fi
+      - IMAGE_TAG_COMMIT="${IMAGE_TAG_TYPE}-commit-${CODEBUILD_RESOLVED_SOURCE_VERSION}"
+      - REPO_URI_NODEJS="${REGISTRY_URI}/cyphrim-nodejs"
+      - REPO_URI_NGINX="${REGISTRY_URI}/cyphrim-nginx"
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker images...
+      - if [ $IMAGE_TAG_NAME = "master" ]; then
+          docker build --build-arg TIMESTAMP="$(date +%s)" -t nodejs . ;
+          docker tag nodejs:latest $REPO_URI_NODEJS:$IMAGE_TAG_NAME;
+          docker tag nodejs:latest $REPO_URI_NODEJS:$IMAGE_TAG_COMMIT; fi
+      - if [ $IMAGE_TAG_NAME = "nginx" ]; then
+          docker build -t nginx -f nginx/Dockerfile . ;
+          docker tag nginx:latest $REPO_URI_NGINX:$IMAGE_TAG_NAME;
+          docker tag nginx:latest $REPO_URI_NGINX:$IMAGE_TAG_COMMIT; fi
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - if [ $IMAGE_TAG_NAME = "master" ]; then docker push --all-tags $REPO_URI_NODEJS; fi
+      - if [ $IMAGE_TAG_NAME = "nginx" ]; then docker push --all-tags $REPO_URI_NGINX; fi
