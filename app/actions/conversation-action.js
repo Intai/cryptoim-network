@@ -166,3 +166,8 @@ export const acceptRequest = message => {
     message,
   }
 }
+
+export const clearError = publicKey => ({
+  type: ActionTypes.CONVERSATION_CLEAR_REQUEST_ERROR,
+  publicKey,
+})

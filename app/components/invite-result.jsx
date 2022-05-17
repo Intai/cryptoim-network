@@ -1,5 +1,5 @@
 import { find, propEq } from 'ramda'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
@@ -38,6 +38,14 @@ const InviteResult = props => {
   const { state: { login, conversationList }, dispatch } = useBdux(props)
   const { conversations, errors } = conversationList
   const error = publicKey ? errors[publicKey] : 'Invalid public key.'
+  const countRef = useRef(0)
+
+  const sendRequest = () => {
+    if (publicKey) {
+      dispatch(ContactAction.invite(publicKey))
+      dispatch(ConversationAction.sendRequest(publicKey, getRequestMessage(login)))
+    }
+  }
 
   useEffect(() => {
     if (!error) {
@@ -47,23 +55,24 @@ const InviteResult = props => {
       if (conversation) {
         dispatch(LocationAction.replace(`/conversation/${conversation.uuid}`))
       }
+    } else if (countRef.current < 1) {
+      if (publicKey) {
+        dispatch(ConversationAction.clearError(publicKey))
+      }
+      countRef.current += 1
+      setTimeout(sendRequest, 300)
     }
   })
 
   useEffect(() => {
-    if (publicKey) {
-      // gun doesn't return user in the callback if too early.
-      // please remove the timeout when fixed.
-      setTimeout(() => {
-        dispatch(ContactAction.invite(publicKey))
-        dispatch(ConversationAction.sendRequest(publicKey, getRequestMessage(login)))
-      }, 300)
-    }
+    // gun doesn't return user in the callback if too early.
+    // please remove the timeout when fixed.
+    setTimeout(sendRequest, 300)
   // didMount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return error && (
+  return error && countRef.current >= 1 && (
     <>
       <PanelHeader>Invite link</PanelHeader>
       <InviteMessageWrap>

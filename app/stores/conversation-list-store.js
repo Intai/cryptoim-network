@@ -173,6 +173,20 @@ const whenSendRequestError = when(
   ])
 )
 
+const whenClearRequestError = when(
+  isAction(ActionTypes.CONVERSATION_CLEAR_REQUEST_ERROR),
+  converge(mergeDeepRight, [
+    identity,
+    ({ action: { publicKey } }) => ({
+      state: {
+        errors: {
+          [publicKey]: null,
+        },
+      },
+    }),
+  ])
+)
+
 export const getReducer = () => {
   const reducerStream = new Bus()
   return {
@@ -185,6 +199,7 @@ export const getReducer = () => {
       .map(whenRemove)
       .map(whenSendRequest)
       .map(whenSendRequestError)
+      .map(whenClearRequestError)
       .map(prop('state')),
   }
 }
