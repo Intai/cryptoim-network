@@ -1,50 +1,66 @@
-import { gun } from './gun-util'
-import Sea from 'gun/sea'
+import { once } from 'ramda'
+import { getGun, Sea } from './gun-util'
 
-export const authUser = gun.user()
-let authPair
+export const getAuthPair = (() => {
+  let authPair
+  const subscribe = once(() => {
+    getGun().on('auth', ack => {
+      authPair = ack.sea
+    })
+  })
 
-gun.on('auth', ack => {
-  authPair = ack.sea
+  return () => {
+    subscribe()
+    return authPair
+  }
+})()
+
+export const getAuthUser = once(() => {
+  getAuthPair()
+  return getGun().user()
 })
 
-export const getAuthPair = () => authPair
-
 export const hasUser = (alias, cb) => {
-  gun.get(`~@${alias}`).once(data => {
+  getGun().get(`~@${alias}`).once(data => {
     cb(!!data)
   })
 }
 
 export const recall = (cb) => {
-  authUser.recall({ sessionStorage: true })
+  getAuthUser().recall({ sessionStorage: true })
 
-  if (authUser.is) {
-    authUser.once(data => {
+  if (getAuthUser().is) {
+    getAuthUser().once(data => {
       if (data) {
         const { alias, name } = data
         cb({
-          alias: alias || authUser.is.alias || null,
+          alias: alias || getAuthUser().is.alias || null,
           name: name || null,
-          pair: authPair,
+          pair: getAuthPair(),
         })
       } else {
         cb({
-          alias: authUser.is.alias,
+          alias: getAuthUser().is.alias,
           name: null,
-          pair: authPair,
+          pair: getAuthPair(),
         })
       }
+
+      // tell server not to render the login page.
+      document.cookie = 'recall=true;'
     })
   } else {
     cb({
       err: 'Wrong user or password.',
     })
+
+    // tell server to start rendering the login page.
+    document.cookie = ''
   }
 }
 
 export const authorise = (alias, password, cb) => {
-  authUser.auth(alias, password, ({ err }) => {
+  getAuthUser().auth(alias, password, ({ err }) => {
     if (err) {
       cb({ err })
     } else {
@@ -54,7 +70,7 @@ export const authorise = (alias, password, cb) => {
 }
 
 export const authoriseQrCode = (pair, cb) => {
-  authUser.auth(pair, ({ err }) => {
+  getAuthUser().auth(pair, ({ err }) => {
     if (err) {
       cb({ err })
     } else {
@@ -64,7 +80,7 @@ export const authoriseQrCode = (pair, cb) => {
 }
 
 export const create = (alias, password, cb) => {
-  authUser.create(alias, password, ({ err }) => {
+  getAuthUser().create(alias, password, ({ err }) => {
     if (err) {
       if (/User already created/i.test(err)) {
         authorise(alias, password, cb)
@@ -79,13 +95,13 @@ export const create = (alias, password, cb) => {
 
 export const createAnonymous = cb => {
   Sea.pair().then(pair => {
-    authUser.auth(pair, ({ err }) => {
+    getAuthUser().auth(pair, ({ err }) => {
       if (err) {
         cb({ err })
       } else {
-        authUser.get('pub').put(pair.pub)
-        authUser.get('epub').put(pair.epub)
-        authUser.get('name').put('Anonymous')
+        getAuthUser().get('pub').put(pair.pub)
+        getAuthUser().get('epub').put(pair.epub)
+        getAuthUser().get('name').put('Anonymous')
         recall(cb)
       }
     })
@@ -93,11 +109,15 @@ export const createAnonymous = cb => {
 }
 
 export const setUserName = name => {
-  authUser
+  getAuthUser()
     .get('name')
     .put(name)
 }
 
 export const leave = () => {
-  authUser.leave()
+  getAuthUser()
+    .leave()
+
+  // tell server to start rendering the login page.
+  document.cookie = ''
 }

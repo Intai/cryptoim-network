@@ -8,7 +8,7 @@ import Anchor from './anchor'
 import ContactList from './contact-list'
 import { fontLarge } from './typography'
 import { scrollbar } from './scrollbar'
-import { getWebUrl } from '../utils/common-util'
+import { getAppUrl } from '../utils/common-util'
 import LoginStore from '../stores/login-store'
 
 const Scrollbar = styled.div`
@@ -73,7 +73,7 @@ const Invite = (props) => {
 
   // replace dots to avoid routing confusion. assuming there is no
   // space in public key. need to convert back on the receiving end.
-  const inviteUrl = getWebUrl(`/invite?pub=${login.pair.pub}`)
+  const inviteUrl = getAppUrl(`/invite?pub=${login.pair.pub}`)
 
   return (
     <>

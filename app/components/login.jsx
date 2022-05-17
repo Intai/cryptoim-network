@@ -7,7 +7,7 @@ import Button from './button'
 import LoginScan from './login-scan'
 import PromoFeatures from './promo-features'
 import { primaryBackground, alertBackground, secondaryBorder } from './color'
-import { useResponsive } from '../hooks/responsive'
+import { isBreakpointUp } from '../hooks/responsive'
 import { getStaticUrl } from '../utils/common-util'
 import * as LoginAction from '../actions/login-action'
 
@@ -17,25 +17,27 @@ const Container = styled.div`
 `
 
 const PromoContainer = styled.div`
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
+  ${isBreakpointUp('md', 'display: flex;')}
 `
 
 const PromoFeaturesBelowLogo = styled(PromoFeatures)`
   margin: 98px 0 30px 45px;
   max-width: 320px;
 
-  ${({ isLgAndUp }) => isLgAndUp && `
+  ${isBreakpointUp('lg', `
     margin-top: 80px;
     max-width: 360px;
-  `}
+  `)}
 `
 
 const PromoFeaturesBelowForm = styled(PromoFeatures)`
   margin: 45px 0 15px 0;
   width: 270px;
   max-width: calc(100vw - 30px);
+  ${isBreakpointUp('md', 'display: none;')}
 `
 
 const LoginContainer = styled.div`
@@ -96,7 +98,6 @@ const getLoginLabel = login => {
 const Login = (props) => {
   const { login } = props
   const { dispatch } = useBdux(props)
-  const { isBreakpointUp, isBreakpointDown } = useResponsive()
   const [isScanning, setIsScanning] = useState(false)
   const hasRadata = login?.hasRadata
 
@@ -197,17 +198,13 @@ const Login = (props) => {
             {getLoginLabel(login)}
           </Button>
 
-          {isBreakpointDown('md') && (
-            <PromoFeaturesBelowForm />
-          )}
+          <PromoFeaturesBelowForm />
         </LoginForm>
       </LoginContainer>
 
-      {isBreakpointUp('md') && (
-        <PromoContainer>
-          <PromoFeaturesBelowLogo isLgAndUp={isBreakpointUp('lg')} />
-        </PromoContainer>
-      )}
+      <PromoContainer>
+        <PromoFeaturesBelowLogo />
+      </PromoContainer>
     </Container>
   )
 }

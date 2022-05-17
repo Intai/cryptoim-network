@@ -1,0 +1,72 @@
+"CodeDeployDeploymentGroup": {
+  "Type": "AWS::CodeDeploy::DeploymentGroup",
+  "Properties": {
+    "ApplicationName": {
+      "Ref": "CodeDeployApplication"
+    },
+    "DeploymentGroupName": {
+      "Fn::Join": [
+        "-", [
+          "DgpECS",
+          { "Ref": "ClusterName" },
+          { "Ref": "ProjectName" }
+        ]
+      ]
+    },
+    "AlarmConfiguration": {
+      "Enabled": false,
+      "IgnorePollAlarmFailure": false,
+      "Alarms": []
+    },
+    "AutoRollbackConfiguration": {
+      "Enabled": true,
+      "Events": [
+        "DEPLOYMENT_FAILURE"
+      ]
+    },
+    "BlueGreenDeploymentConfiguration": {
+      "TerminateBlueInstancesOnDeploymentSuccess": {
+        "Action": "TERMINATE",
+        "TerminationWaitTimeInMinutes": 0
+      },
+      "DeploymentReadyOption": {
+        "ActionOnTimeout": "CONTINUE_DEPLOYMENT",
+        "WaitTimeInMinutes": 0
+      }
+    },
+    "DeploymentConfigName": "CodeDeployDefault.ECSAllAtOnce",
+    "DeploymentStyle": {
+      "DeploymentType": "BLUE_GREEN",
+      "DeploymentOption": "WITH_TRAFFIC_CONTROL"
+    },
+    "LoadBalancerInfo": {
+      "TargetGroupPairInfoList": [{
+        "TargetGroups": [{
+          "Name": {
+            "Fn::GetAtt": ["TargetGroup1", "TargetGroupName"]
+          }
+        }, {
+          "Name": {
+            "Fn::GetAtt": ["TargetGroup2", "TargetGroupName"]
+          }
+        }],
+        "ProdTrafficRoute": {
+          "listenerArns": [{
+            "Ref": "LoadBalancerListener443"
+          }]
+        }
+      }]
+    },
+    "ECSServices": [{
+      "ServiceName": {
+        "Fn::GetAtt": ["ECSService", "Name"]
+      },
+      "ClusterName": {
+        "Ref": "ECSCluster"
+      }
+    }],
+    "ServiceRoleArn": {
+      "Fn::GetAtt": ["CodeDeployServiceRole", "Arn"]
+    }
+  }
+}

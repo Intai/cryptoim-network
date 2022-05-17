@@ -1,8 +1,7 @@
-import { identity, memoizeWith, pick } from 'ramda'
+import { identity, memoizeWith, pick, pipe } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
-import { gun } from './gun-util'
-import Sea from 'gun/sea'
-import { authUser, getAuthPair } from './login-util'
+import { getGun, Sea } from './gun-util'
+import { getAuthUser, getAuthPair } from './login-util'
 
 const uuidCache = {}
 const nameCache = {}
@@ -16,24 +15,46 @@ const cleanContact = pick([
 
 // memoize because only need to subscrube to each contact once.
 const updateContact = memoizeWith(identity, (pub, cb) => {
-  gun.user(pub).get('name').on(name => {
-    if (nameCache[pub] !== name) {
-      nameCache[pub] = name
-      setContact(pub, data => {
-        if (!data.err) {
-          cb(data)
-        }
-      })
+  let ev
+
+  getGun()
+    .user(pub)
+    .get('name')
+    .on((name, _key, _msg, _ev) => {
+      ev = _ev
+      if (nameCache[pub] !== name) {
+        nameCache[pub] = name
+        setContact(pub, data => {
+          if (!data.err) {
+            cb(data)
+          }
+        })
+      }
+    })
+
+  return () => {
+    if (ev) {
+      ev.off()
     }
-  })
+  }
 })
 
+const pushUnsub = (unsub, unsubs) => {
+  if (unsubs.indexOf(unsub) < 0) {
+    unsubs.push(unsub)
+  }
+}
+
 export const getContact = cb => {
+  const unsubs = []
+  let ev
+
   // get contact when created or updated.
-  authUser
+  getAuthUser()
     .get('contacts')
     .map()
-    .on(encrypted => {
+    .on((encrypted, _key, _msg, _ev) => {
+      ev = _ev
       if (encrypted) {
         Sea.decrypt(encrypted, getAuthPair()).then(contact => {
           if (contact) {
@@ -41,15 +62,25 @@ export const getContact = cb => {
             uuidCache[pub] = uuid
             nameCache[pub] = name
             cb(contact)
-            updateContact(pub, cb)
+
+            // subscribe to contact name changes.
+            const unsub = updateContact(pub, cb)
+            pushUnsub(unsub, unsubs)
           }
         })
       }
     })
+
+  return () => {
+    pipe(...unsubs)()
+    if (ev) {
+      ev.off()
+    }
+  }
 }
 
 export const setContact = (pub, cb) => {
-  gun.user(pub).once(data => {
+  getGun().user(pub).once(data => {
     if (!data) {
       cb({ err: 'Invalid invite URL.' })
     } else {
@@ -62,7 +93,7 @@ export const setContact = (pub, cb) => {
       }
 
       Sea.encrypt(contact, getAuthPair()).then(encrypted => {
-        authUser
+        getAuthUser()
           .get('contacts')
           .get(`contact-${uuid}`)
           .put(encrypted)
@@ -74,7 +105,7 @@ export const setContact = (pub, cb) => {
 }
 
 export const removeContact = contact => {
-  authUser
+  getAuthUser()
     .get('contacts')
     .get(`contact-${contact.uuid}`)
     .put(null)

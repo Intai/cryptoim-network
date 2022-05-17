@@ -11,14 +11,14 @@ export const init = () => mergeAll(
     type: ActionTypes.CONTACT_INIT,
   }),
 
-  fromBinder(sink => {
+  fromBinder(sink => (
     getContact(contact => {
       sink({
         type: ActionTypes.CONTACT_APPEND,
         contact,
       })
     })
-  })
+  ))
 )
 
 export const invite = pubicKey => fromCallback(callback => {

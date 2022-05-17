@@ -1,0 +1,65 @@
+{
+  "Parameters": {
+    "AWSStackName": {
+      "Type": "String"
+    },
+    "ClusterName": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "CodeDeployServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Join": [
+            "-", [
+              "codedeploy",
+              { "Ref": "AWSStackName" },
+              "service-role"
+            ]
+          ]
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "codedeploy.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }]
+        },
+        "Description": "Allows CodeDeploy to read S3 objects, invoke Lambda functions, publish to SNS topics, and update ECS services on your behalf.",
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS"
+        ],
+        "MaxSessionDuration": 3600,
+        "Path": "/"
+      }
+    },
+    "CodeDeployApplication": {
+      "Type": "AWS::CodeDeploy::Application",
+      "Properties": {
+        "ApplicationName": {
+          "Fn::Join": [
+            "-", [
+              "AppECS",
+              { "Ref": "ClusterName" },
+              { "Ref": "AWSStackName" }
+            ]
+          ]
+        },
+        "ComputePlatform": "ECS"
+      }
+    }
+  },
+  "Outputs": {
+    "CodeDeployApplication": {
+      "Value": {
+        "Ref": "CodeDeployApplication"
+      }
+    }
+  }
+}

@@ -1,5 +1,4 @@
 import {
-  End,
   fromBinder,
   fromCallback,
   mergeAll,
@@ -24,25 +23,25 @@ export const init = () => mergeAll(
     type: ActionTypes.CONVERSATION_INIT,
   }),
 
-  fromBinder(sink => {
+  fromBinder(sink => (
     getConversation(conversation => {
       sink({
         type: ActionTypes.CONVERSATION_APPEND,
         conversation,
       })
     })
-  }),
+  )),
 
-  fromBinder(sink => {
+  fromBinder(sink => (
     getConversationMessage(message => {
       sink({
         type: ActionTypes.MESSAGE_APPEND,
         message,
       })
     })
-  }),
+  )),
 
-  fromBinder(sink => {
+  fromBinder(sink => (
     getMyMessage(message => {
       sink({
         type: ActionTypes.MESSAGE_APPEND,
@@ -56,7 +55,7 @@ export const init = () => mergeAll(
         })
       }
     })
-  })
+  ))
 )
 
 export const selectConversation = (conversation, timestamp) => conversation && ({
@@ -110,7 +109,7 @@ export const updateLastTimestamp = (conversation, lastTimestamp) => {
 export const notifyNewMessage = (contact, conversation, message) => (
   canUseDOM()
     && Notification.permission === 'granted'
-    && fromBinder(sink => {
+    && fromCallback(callback => {
       const { alias, name } = contact
       const notification = new Notification(`New message from ${name || alias}`, {
         tag: message.uuid,
@@ -119,9 +118,9 @@ export const notifyNewMessage = (contact, conversation, message) => (
       })
 
       notification.addEventListener('click', () => {
+        window.focus()
         notification.close()
-        sink(LocationAction.push(`/conversation/${conversation.uuid}`))
-        sink(new End())
+        callback(LocationAction.push(`/conversation/${conversation.uuid}`))
       })
     })
 )

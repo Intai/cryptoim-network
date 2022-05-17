@@ -1,0 +1,132 @@
+{
+  "Parameters": {
+    "AWSStackName": {
+      "Type": "String"
+    },
+    "ClusterName": {
+      "Type": "String"
+    },
+    "Subnet1": {
+      "Type": "String"
+    },
+    "SecurityGroup": {
+      "Type": "String"
+    },
+    "TargetGroup1": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "ECSCluster": {
+      "Type": "AWS::ECS::Cluster",
+      "Properties": {
+        "ClusterName": {
+          "Ref": "ClusterName"
+        },
+        "CapacityProviders": [
+          "FARGATE_SPOT",
+          "FARGATE"
+        ],
+        "ClusterSettings": [{
+          "Name": "containerInsights",
+          "Value": "enabled"
+        }]
+      }
+    },
+    "ECSService": {
+      "Type": "AWS::ECS::Service",
+      "Properties": {
+        "ServiceName": {
+          "Ref": "AWSStackName"
+        },
+        "Cluster": {
+          "Ref": "ECSCluster"
+        },
+        "DeploymentConfiguration": {
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 1
+        },
+        "DeploymentController": {
+          "Type": "CODE_DEPLOY"
+        },
+        "DesiredCount": 1,
+        "EnableECSManagedTags": true,
+        "EnableExecuteCommand": false,
+        "HealthCheckGracePeriodSeconds": 0,
+        "LaunchType": "FARGATE",
+        "LoadBalancers": [{
+          "TargetGroupArn": {
+            "Ref": "TargetGroup1"
+          },
+          "ContainerName": "nginx",
+          "ContainerPort": 80
+        }],
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "Subnets": [{
+              "Ref": "Subnet1"
+            }],
+            "SecurityGroups": [{
+              "Ref": "SecurityGroup"
+            }],
+            "AssignPublicIp": "ENABLED"
+          }
+        },
+        "PlatformVersion": "1.4.0",
+        "SchedulingStrategy": "REPLICA",
+        "TaskDefinition": {
+          "Ref": "ECSTaskDefinition"
+        }
+      }
+    },
+    "ECSTaskExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "ecsTaskExecutionRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2008-10-17",
+          "Statement": [{
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "ecs-tasks.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+        ],
+        "MaxSessionDuration": 3600,
+        "Path": "/"
+      }
+    },
+    "ECSTaskDefinition": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "Family": {
+          "Ref": "AWSStackName"
+        },
+        "ContainerDefinitions":  [{
+          "Name": "nginx",
+          "Image": "public.ecr.aws/nginx/nginx",
+          "PortMappings": [{
+            "ContainerPort": 80,
+            "HostPort": 80,
+            "Protocol": "tcp"
+          }],
+          "Essential": true
+        }],
+        "Cpu": "256",
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": ["ECSTaskExecutionRole", "Arn"]
+        },
+        "Memory": "512",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "Parameters": {
+    "AWSStackName": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "ECRNode": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": {
+          "Fn::Join": [
+            "-", [
+              { "Ref": "AWSStackName" },
+              "nodejs"
+            ]
+          ]
+        },
+        "ImageTagMutability": "MUTABLE",
+        "ImageScanningConfiguration": {
+          "ScanOnPush": false
+        },
+        "EncryptionConfiguration": {
+          "EncryptionType": "AES256"
+        },
+        "LifecyclePolicy": {
+          "LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Branch\",\"selection\":{\"tagStatus\":\"tagged\",\"tagPrefixList\":[\"branch-commit-\"],\"countType\":\"imageCountMoreThan\",\"countNumber\":2},\"action\":{\"type\":\"expire\"}}]}",
+          "RegistryId": {
+            "Ref": "AWS::AccountId"
+          }
+        }
+      }
+    },
+    "ECRNginx": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": {
+          "Fn::Join": [
+            "-", [
+              { "Ref": "AWSStackName" },
+              "nginx"
+            ]
+          ]
+        },
+        "ImageTagMutability": "MUTABLE",
+        "ImageScanningConfiguration": {
+          "ScanOnPush": false
+        },
+        "EncryptionConfiguration": {
+          "EncryptionType": "AES256"
+        },
+        "LifecyclePolicy": {
+          "LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Branch\",\"selection\":{\"tagStatus\":\"tagged\",\"tagPrefixList\":[\"branch-commit-\"],\"countType\":\"imageCountMoreThan\",\"countNumber\":2},\"action\":{\"type\":\"expire\"}}]}",
+          "RegistryId": {
+            "Ref": "AWS::AccountId"
+          }
+        }
+      }
+    }
+  }
+}

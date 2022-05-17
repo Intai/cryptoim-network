@@ -1,0 +1,162 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "ClusterName": {
+      "Type": "String",
+      "Default": "cyphrim",
+      "Description": "ECS cluster name."
+    },
+    "GitHubRepositoryId": {
+      "Type": "String",
+      "Default": "Intai/cyphrim-com",
+      "Description": "GitHub repository."
+    },
+    "VpcId": {
+      "Type": "String",
+      "Default": "vpc-07d198f88bb94061c",
+      "Description": "The identifier of the virtual private cloud (VPC)."
+    },
+    "Subnet1": {
+      "Type": "String",
+      "Default": "subnet-038eb3c816a53d4c1",
+      "Description": "One subnet per Availability Zone."
+    },
+    "Subnet2": {
+      "Type": "String",
+      "Default": "subnet-0b06cfa7af1f9b258",
+      "Description": "One subnet per Availability Zone."
+    },
+    "CertificateArn": {
+      "Type": "String",
+      "Default": "arn:aws:acm:us-east-1:501045672667:certificate/cbcea9e5-ff95-4a85-9425-bf4bdad48452",
+      "Description": "The SSL server certificate."
+    }
+  },
+  "Resources": {
+    "CodeBuildStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "code-build.json",
+        "Parameters": {
+          "AWSStackName": {
+            "Ref": "AWS::StackName"
+          },
+          "GitHubRepositoryId": {
+            "Ref": "GitHubRepositoryId"
+          }
+        }
+      }
+    },
+    "ECRStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "ecr.json",
+        "Parameters": {
+          "AWSStackName": {
+            "Ref": "AWS::StackName"
+          }
+        }
+      }
+    },
+    "LoadBalancerStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "load-balancer.json",
+        "Parameters": {
+          "AWSStackName": {
+            "Ref": "AWS::StackName"
+          },
+          "VpcId": {
+            "Ref": "VpcId"
+          },
+          "Subnet1": {
+            "Ref": "Subnet1"
+          },
+          "Subnet2": {
+            "Ref": "Subnet2"
+          },
+          "CertificateArn": {
+            "Ref": "CertificateArn"
+          }
+        }
+      }
+    },
+    "ECSStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "ecs.json",
+        "Parameters": {
+          "AWSStackName": {
+            "Ref": "AWS::StackName"
+          },
+          "ClusterName": {
+            "Ref": "ClusterName"
+          },
+          "Subnet1": {
+            "Ref": "Subnet1"
+          },
+          "SecurityGroup": {
+            "Fn::GetAtt": ["LoadBalancerStack", "Outputs.SecurityGroup"]
+          },
+          "TargetGroup1": {
+            "Fn::GetAtt": ["LoadBalancerStack", "Outputs.TargetGroup1"]
+          }
+        }
+      }
+    },
+    "CodePipelineStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "code-pipeline.json",
+        "Parameters": {
+          "AWSStackName": {
+            "Ref": "AWS::StackName"
+          },
+          "ClusterName": {
+            "Ref": "ClusterName"
+          },
+          "GitHubRepositoryId": {
+            "Ref": "GitHubRepositoryId"
+          },
+          "CodeDeployApplication": {
+            "Fn::GetAtt": ["CodeDeployStack", "Outputs.CodeDeployApplication"]
+          }
+        }
+      }
+    },
+    "CodeDeployStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "DependsOn": [
+        "ECSStack"
+      ],
+      "Properties": {
+        "TemplateURL": "code-deploy.json",
+        "Parameters": {
+          "AWSStackName": {
+            "Ref": "AWS::StackName"
+          },
+          "ClusterName": {
+            "Ref": "ClusterName"
+          }
+        }
+      }
+    },
+    "SNSStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "DependsOn": [
+        "CodePipelineStack"
+      ],
+      "Properties": {
+        "TemplateURL": "sns.json",
+        "Parameters": {
+          "AWSStackName": {
+            "Ref": "AWS::StackName"
+          },
+          "CodeBuildArn": {
+            "Fn::GetAtt": ["CodeBuildStack", "Outputs.CodeBuildArn"]
+          }
+        }
+      }
+    }
+  }
+}

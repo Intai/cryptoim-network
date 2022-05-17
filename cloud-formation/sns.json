@@ -1,0 +1,86 @@
+{
+  "Parameters": {
+    "AWSStackName": {
+      "Type": "String"
+    },
+    "CodeBuildArn": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "SNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": {
+          "Ref": "AWSStackName"
+        },
+        "DisplayName": "",
+        "Subscription": [{
+          "Endpoint": "intai.hg@gmail.com",
+          "Protocol": "email"
+        }]
+      }
+    },
+    "NotificationCodeBuild": {
+      "Type": "AWS::CodeStarNotifications::NotificationRule",
+      "Properties": {
+        "Name": {
+          "Fn::Join": [
+            "-", [
+              { "Ref": "AWSStackName" },
+              "build-failed"
+            ]
+          ]
+        },
+        "DetailType": "BASIC",
+        "EventTypeIds": [
+          "codebuild-project-build-state-failed"
+        ],
+        "Resource": {
+          "Ref": "CodeBuildArn"
+        },
+        "Status": "ENABLED",
+        "Targets": [{
+          "TargetAddress": {
+            "Ref": "SNSTopic"
+          },
+          "TargetType": "SNS"
+        }]
+      }
+    },
+    "NotificationCodePipeline": {
+      "Type": "AWS::CodeStarNotifications::NotificationRule",
+      "Properties": {
+        "Name": {
+          "Fn::Join": [
+            "-", [
+              { "Ref": "AWSStackName" },
+              "pipeline-failed"
+            ]
+          ]
+        },
+        "DetailType": "BASIC",
+        "EventTypeIds": [
+          "codepipeline-pipeline-pipeline-execution-failed"
+        ],
+        "Resource": {
+          "Fn::Join": [
+            ":", [
+              "arn:aws:codepipeline",
+              { "Ref": "AWS::Region" },
+              { "Ref": "AWS::AccountId" },
+              { "Ref": "AWSStackName" }
+            ]
+          ]
+        },
+        "Status": "ENABLED",
+        "Targets": [{
+          "TargetAddress": {
+            "Ref": "SNSTopic"
+          },
+          "TargetType": "SNS"
+        }]
+      }
+    }
+  }
+}

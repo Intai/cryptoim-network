@@ -1,13 +1,11 @@
 import './settings'
 import fs from 'fs'
 import path from 'path'
+import Gun from 'gun'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import { ServerStyleSheet } from 'styled-components'
-import HeadRoot from './roots/head-root'
 import AppRoot from './roots/app-root'
-import PortalRoot from './roots/portal-root'
-import database from './actions/database'
-import { encodeSku } from './utils/common-util'
 
 const app = express()
 const port = process.env.PORT || 8080
@@ -36,14 +34,7 @@ const renderApp = (req, res) => {
     res.set('Content-Type', 'text/html')
     res.set('Etag', etag)
     body += head
-    body += HeadRoot.renderToString(req, res)
-
-    const sheetPortal = new ServerStyleSheet()
-    const htmlPortal = PortalRoot.renderToString(req, res, sheetPortal)
     body += beforePortal
-    body += sheetPortal.getStyleTags()
-    body += htmlPortal
-    sheetPortal.seal()
 
     const sheetApp = new ServerStyleSheet()
     const htmlApp = AppRoot.renderToString(req, res, sheetApp)
@@ -53,8 +44,8 @@ const renderApp = (req, res) => {
     sheetApp.seal()
 
     body += tail
-    res.set('Content-Length', body.length)
-    res.write(body)
+    res.set('Content-Length', Buffer.byteLength(body, 'utf8'))
+    res.end(body)
   })
 }
 
@@ -74,10 +65,7 @@ const serviceWorker = (req, res) => {
 
 const sitemap = (req, res) => {
   res.set('Content-Type', 'application/xml')
-  res.render(path.join(__dirname, '/sitemap'), {
-    database,
-    encodeSku,
-  })
+  res.render(path.join(__dirname, '/sitemap'))
 }
 
 app.set('etag', 'weak')
@@ -86,6 +74,13 @@ app.use(/^\/static[^/]*/, express.static('dist', { maxAge: 15552000000 }))
 app.use('/favicon.ico', express.static('dist/favicon'))
 app.get('/service-worker', serviceWorker)
 app.get('/sitemap.xml', sitemap)
+app.use(Gun.serve)
+app.use(cookieParser())
 app.get('*', renderApp)
 
-app.listen(port)
+const server = app.listen(port)
+process.gun = Gun({
+  radisk: true,
+  file: 'radata',
+  web: server,
+})

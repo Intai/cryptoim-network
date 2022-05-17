@@ -19,10 +19,17 @@ const getEnv = () => (
     : process.env
 ) || {}
 
-export const getWebUrl = (pathname) => {
-  const cdn = getEnv().WEB_CDN_DOMAIN
-  return cdn
-    ? `${cdn}${pathname}`
+export const getAppUrl = (pathname) => {
+  const domain = getEnv().APP_DOMAIN
+  return domain
+    ? `${domain}${pathname}`
+    : pathname
+}
+
+export const getGunUrl = (pathname) => {
+  const domain = getEnv().GUN_DOMAIN
+  return domain
+    ? `${domain}${pathname}`
     : pathname
 }
 

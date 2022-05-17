@@ -1,9 +1,8 @@
-import { memoizeWith, prop } from 'ramda'
+import { memoizeWith, pipe, prop } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import { jsonParse } from './common-util'
-import { gun } from './gun-util'
-import Sea from 'gun/sea'
-import { authUser, getAuthPair } from './login-util'
+import { getGun, Sea } from './gun-util'
+import { getAuthUser, getAuthPair } from './login-util'
 
 const decryptMessage = async (forPair, fromEpub, encrypted) => {
   let passphrase = await Sea.secret(fromEpub, forPair)
@@ -11,10 +10,13 @@ const decryptMessage = async (forPair, fromEpub, encrypted) => {
 }
 
 const getMessage = (forPair, fromEpub, cb) => {
-  gun.get('#messages')
+  let ev
+
+  getGun().get('#messages')
     .get({ '.': { '*': `${forPair.pub}-` } })
     .map()
-    .on(json => {
+    .on((json, _key, _msg, _ev) => {
+      ev = _ev
       if (json) {
         // parse the json string and then decrypt back to message object.
         const { encrypted, origin } = jsonParse(json)
@@ -26,9 +28,15 @@ const getMessage = (forPair, fromEpub, cb) => {
           })
       }
     })
+
+  return () => {
+    if (ev) {
+      ev.off()
+    }
+  }
 }
 
-export const getNextMessage = (nextPair, cb) => {
+export const getNextMessage = (nextPair, cb) => (
   getMessage(
     // for the previous message.
     nextPair,
@@ -37,9 +45,9 @@ export const getNextMessage = (nextPair, cb) => {
     // callback to return message one by one.
     cb
   )
-}
+)
 
-export const getMyMessage = (cb) => {
+export const getMyMessage = cb => (
   getMessage(
     // for me.
     getAuthPair(),
@@ -48,7 +56,7 @@ export const getMyMessage = (cb) => {
     // callback to return message one by one.
     cb
   )
-}
+)
 
 const encryptMessage = async (user, fromPair, conversePub, content) => {
   let nextPair
@@ -82,7 +90,7 @@ const sendMessage = (user, fromPair, conversePub, content, cb) => {
       const json = JSON.stringify({ encrypted, origin })
       Sea.work(json, null, null, { name: 'SHA-256' })
         .then(hash => {
-          gun.get('#messages')
+          getGun().get('#messages')
             .get(`${user.pub}-#${hash}`)
             .put(json)
 
@@ -107,7 +115,7 @@ export const sendNextMessage = (nextPair, conversePub, content, cb) => {
 }
 
 export const sendMessageToUser = (toPub, conversePub, content, cb) => {
-  gun.user(toPub).once(user => {
+  getGun().user(toPub).once(user => {
     if (!user?.epub) {
       cb({ err: 'Invalid contact.' })
     } else {
@@ -143,7 +151,7 @@ export const createConversation = (message, cb) => {
 
   // encrypt the conversation, so others can not trace.
   Sea.encrypt(conversation, getAuthPair()).then(encrypted => {
-    authUser
+    getAuthUser()
       .get('conversations')
       .get(`conversation-${uuid}`)
       .put(encrypted)
@@ -155,11 +163,14 @@ export const createConversation = (message, cb) => {
 }
 
 export const getConversation = cb => {
+  let ev
+
   // get conversation one by one, also when created or updated.
-  authUser
+  getAuthUser()
     .get('conversations')
     .map()
-    .on(encrypted => {
+    .on((encrypted, _key, _msg, _ev) => {
+      ev = _ev
       if (encrypted) {
         Sea.decrypt(encrypted, getAuthPair()).then(conversation => {
           if (conversation) {
@@ -170,27 +181,48 @@ export const getConversation = cb => {
         })
       }
     })
+
+  return () => {
+    if (ev) {
+      ev.off()
+    }
+  }
+}
+
+const pushUnsub = (unsub, unsubs) => {
+  if (unsubs.indexOf(unsub) < 0) {
+    unsubs.push(unsub)
+  }
 }
 
 // recursively follow the chain of messages.
 // memoize because gun can callback multiple times.
-const getNextMessageRecursive = memoizeWith(prop('pub'), (nextPair, cb) => {
-  getNextMessage(nextPair, message => {
+const getNextMessageRecursive = memoizeWith(prop('pub'), (nextPair, cb, unsubs) => {
+  const unsub = getNextMessage(nextPair, message => {
     cb(message)
-    getNextMessageRecursive(message.nextPair, cb)
+    getNextMessageRecursive(message.nextPair, cb, unsubs)
   })
+
+  // accumulate unsubscribe functions.
+  pushUnsub(unsub, unsubs)
 })
 
 export const getConversationMessage = cb => {
+  const unsubs = []
+
   // for all conversations.
-  getConversation(conversation => {
+  const unsub = getConversation(conversation => {
     // get messages one by one, also when created or updated.
-    getNextMessageRecursive(conversation.nextPair, cb)
+    getNextMessageRecursive(conversation.nextPair, cb, unsubs)
   })
+
+  // be able to unsubscribe from the conversation and all messages recursively.
+  pushUnsub(unsub, unsubs)
+  return pipe(...unsubs)
 }
 
 export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => {
-  const converseNode = authUser
+  const converseNode = getAuthUser()
     .get('conversations')
     .get(`conversation-${converseUuid}`)
 
@@ -214,7 +246,7 @@ export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => 
 export const expireConversationMessage = (converseUuid, message) => {
   const { conversePub, fromPub, nextPair } = message
   const targetPub = (conversePub !== getAuthPair().pub) ? conversePub : fromPub
-  const converseNode = authUser
+  const converseNode = getAuthUser()
     .get('conversations')
     .get(`conversation-${converseUuid}`)
 

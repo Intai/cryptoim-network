@@ -13,6 +13,8 @@ module.exports = {
   plugins: [
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.DefinePlugin({
+      APP_DOMAIN: JSON.stringify(process.env.APP_DOMAIN || 'http://localhost'),
+      GUN_DOMAIN: JSON.stringify(process.env.GUN_DOMAIN || 'http://localhost:8765'),
       IMAGES_CDN_DOMAIN: JSON.stringify(process.env.IMAGES_CDN_DOMAIN || '/static/images'),
       STATIC_CDN_DOMAIN: JSON.stringify(`${process.env.WEB_CDN_DOMAIN || ''}/static`),
       TIMESTAMP: JSON.stringify(''),
@@ -35,7 +37,7 @@ module.exports = {
     extensions: ['.js', '.jsx', `.${env}.js`, `.${env}.jsx`],
   },
   module: {
-    noParse: /(gun|sea)\.js$/,
+    noParse: /(gun|sea|axe)\.js$/,
     rules: [
       {
         test: /\.jsx?$/,

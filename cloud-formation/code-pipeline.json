@@ -1,0 +1,341 @@
+{
+  "Parameters": {
+    "AWSStackName": {
+      "Type": "String"
+    },
+    "ClusterName": {
+      "Type": "String"
+    },
+    "GitHubRepositoryId": {
+      "Type": "String"
+    },
+    "CodeDeployApplication": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "CodePipelineServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Join": [
+            "-", [
+              "codepipeline",
+              { "Ref": "AWSStackName" },
+              "service-role"
+            ]
+          ]
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Service": [
+                "codepipeline.amazonaws.com"
+              ]
+            },
+            "Action": "sts:AssumeRole"
+          }]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
+        ],
+        "MaxSessionDuration": 3600,
+        "Path": "/",
+        "Policies": [{
+          "PolicyName": "CodePipelineBasePolicy",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Action": [
+                "iam:PassRole"
+              ],
+              "Condition": {
+                "StringEqualsIfExists": {
+                  "iam:PassedToService": [
+                    "cloudformation.amazonaws.com",
+                    "ecs-tasks.amazonaws.com"
+                  ]
+                }
+              },
+              "Effect": "Allow",
+              "Resource": "*"
+            }, {
+              "Action": [
+                "codedeploy:CreateDeployment",
+                "codedeploy:GetApplication",
+                "codedeploy:GetApplicationRevision",
+                "codedeploy:GetDeployment",
+                "codedeploy:GetDeploymentConfig",
+                "codedeploy:RegisterApplicationRevision"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }, {
+              "Action": [
+                "codestar-connections:UseConnection"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }, {
+              "Action": [
+                "elasticloadbalancing:*",
+                "autoscaling:*",
+                "cloudwatch:*",
+                "s3:*",
+                "sns:*",
+                "cloudformation:*",
+                "codepipeline:*",
+                "ecs:*"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }, {
+              "Action": [
+                "lambda:InvokeFunction",
+                "lambda:ListFunctions"
+              ],
+              "Resource": "*",
+              "Effect": "Allow"
+            }, {
+              "Action": [
+                "cloudformation:CreateStack",
+                "cloudformation:DeleteStack",
+                "cloudformation:DescribeStacks",
+                "cloudformation:UpdateStack",
+                "cloudformation:CreateChangeSet",
+                "cloudformation:DeleteChangeSet",
+                "cloudformation:DescribeChangeSet",
+                "cloudformation:ExecuteChangeSet",
+                "cloudformation:SetStackPolicy",
+                "cloudformation:ValidateTemplate"
+              ],
+              "Resource": "*",
+              "Effect": "Allow"
+            }, {
+              "Action": [
+                "servicecatalog:ListProvisioningArtifacts",
+                "servicecatalog:CreateProvisioningArtifact",
+                "servicecatalog:DescribeProvisioningArtifact",
+                "servicecatalog:DeleteProvisioningArtifact",
+                "servicecatalog:UpdateProduct"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }, {
+              "Action": [
+                "ecr:DescribeImages"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }, {
+              "Action": [
+                "states:DescribeExecution",
+                "states:DescribeStateMachine",
+                "states:StartExecution"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }, {
+              "Action": [
+                "appconfig:StartDeployment",
+                "appconfig:StopDeployment",
+                "appconfig:GetDeployment"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }]
+          }
+        }]
+      }
+    },
+    "CodePipelineSourceConnection": {
+      "Type": "AWS::CodeStarConnections::Connection",
+      "Properties": {
+        "ConnectionName": {
+          "Ref": "AWSStackName"
+        },
+        "ProviderType": "GitHub"
+      }
+    },
+    "CodePipelineS3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "-", [
+              "codepipeline",
+              { "Ref": "AWS::Region" },
+              { "Ref": "AWSStackName" }
+            ]
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        }
+      }
+    },
+    "CodePipeline": {
+      "Type": "AWS::CodePipeline::Pipeline",
+      "Properties": {
+        "Name": {
+          "Ref": "AWSStackName"
+        },
+        "ArtifactStore": {
+          "Type": "S3",
+          "Location": {
+            "Ref": "CodePipelineS3Bucket"
+          }
+        },
+        "RoleArn": {
+          "Fn::GetAtt": ["CodePipelineServiceRole", "Arn"]
+        },
+        "Stages": [{
+          "Name": "Source",
+          "Actions": [{
+            "Name": "NginxImage",
+            "ActionTypeId": {
+              "Category": "Source",
+              "Owner": "AWS",
+              "Provider": "ECR",
+              "Version": "1"
+            },
+            "RunOrder": 1,
+            "Configuration": {
+              "ImageTag": "nginx",
+              "RepositoryName": {
+                "Fn::Join": [
+                  "-", [
+                    { "Ref": "AWSStackName" },
+                    "nginx"
+                  ]
+                ]
+              }
+            },
+            "OutputArtifacts": [{
+              "Name": "NginxImage"
+            }],
+            "Region": {
+              "Ref": "AWS::Region"
+            }
+          }, {
+            "Name": "NodejsImage",
+            "ActionTypeId": {
+              "Category": "Source",
+              "Owner": "AWS",
+              "Provider": "ECR",
+              "Version": "1"
+            },
+            "RunOrder": 1,
+            "Configuration": {
+              "ImageTag": "master",
+              "RepositoryName": {
+                "Fn::Join": [
+                  "-", [
+                    { "Ref": "AWSStackName" },
+                    "nodejs"
+                  ]
+                ]
+              }
+            },
+            "OutputArtifacts": [{
+              "Name": "NodejsImage"
+            }],
+            "Region": {
+              "Ref": "AWS::Region"
+            }
+          }, {
+            "Name": "SourceCode",
+            "ActionTypeId": {
+              "Category": "Source",
+              "Owner": "AWS",
+              "Provider": "CodeStarSourceConnection",
+              "Version": "1"
+            },
+            "RunOrder": 1,
+            "Configuration": {
+              "BranchName": {
+                "Fn::Join": [
+                  "-", [
+                    "pipeline",
+                    { "Ref": "AWS::AccountId" },
+                  ]
+                ]
+              },
+              "ConnectionArn": {
+                "Ref": "CodePipelineSourceConnection"
+              },
+              "DetectChanges": "false",
+              "FullRepositoryId": {
+                "Ref": "GitHubRepositoryId"
+              },
+              "OutputArtifactFormat": "CODE_ZIP"
+            },
+            "OutputArtifacts": [{
+              "Name": "SourceCode"
+            }],
+            "Region": {
+              "Ref": "AWS::Region"
+            }
+          }]
+        }, {
+          "Name": "Deploy",
+          "Actions": [{
+            "Name": "Deploy",
+            "ActionTypeId": {
+              "Category": "Deploy",
+              "Owner": "AWS",
+              "Provider": "CodeDeployToECS",
+              "Version": "1"
+            },
+            "RunOrder": 1,
+            "Configuration": {
+              "AppSpecTemplateArtifact": "SourceCode",
+              "AppSpecTemplatePath": "appspec.yaml",
+              "ApplicationName": {
+                "Ref": "CodeDeployApplication"
+              },
+              "DeploymentGroupName": {
+                "Fn::Join": [
+                  "-", [
+                    "DgpECS",
+                    { "Ref": "ClusterName" },
+                    { "Ref": "AWSStackName" }
+                  ]
+                ]
+              },
+              "Image1ArtifactName": "NginxImage",
+              "Image1ContainerName": "CONTAINER_IMAGE_NGINX",
+              "Image2ArtifactName": "NodejsImage",
+              "Image2ContainerName": "CONTAINER_IMAGE_NODEJS",
+              "TaskDefinitionTemplateArtifact": "SourceCode",
+              "TaskDefinitionTemplatePath": "taskdef.json"
+            },
+            "InputArtifacts": [{
+              "Name": "NginxImage"
+            }, {
+              "Name": "SourceCode"
+            }, {
+              "Name": "NodejsImage"
+            }],
+            "Region": {
+              "Ref": "AWS::Region"
+            },
+            "Namespace": "DeployVariables"
+          }]
+        }]
+      }
+    },
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/ecs/cyphrim",
+        "RetentionInDays": 7
+      }
+    }
+  }
+}

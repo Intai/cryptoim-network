@@ -50,7 +50,7 @@ function buildClient() {
 }
 
 function buildServer() {
-  return gulp.src('app/server.js')
+  return gulp.src('app/server.prod.js')
     .pipe(webpackStream(require('./webpack/server.config.js'), webpack))
     .pipe(gulp.dest('dist'))
 }
