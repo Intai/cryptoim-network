@@ -28,7 +28,7 @@
     },
     "CertificateArn": {
       "Type": "String",
-      "Default": "arn:aws:acm:us-east-1:501045672667:certificate/cbcea9e5-ff95-4a85-9425-bf4bdad48452",
+      "Default": "arn:aws:acm:us-east-1:845536683714:certificate/7f42577d-f9a6-4f21-b469-e73b69a2f142",
       "Description": "The SSL server certificate."
     }
   },
