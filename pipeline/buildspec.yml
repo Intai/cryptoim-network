@@ -20,11 +20,11 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker images...
-      - if [ $IMAGE_TAG_NAME = "master" ]; then
+      - if [ "$IMAGE_TAG_NAME" = "master" ]; then
           docker build --build-arg TIMESTAMP="$(date +%s)" -t nodejs . ;
           docker tag nodejs:latest $REPO_URI_NODEJS:$IMAGE_TAG_NAME;
           docker tag nodejs:latest $REPO_URI_NODEJS:$IMAGE_TAG_COMMIT; fi
-      - if [ $IMAGE_TAG_NAME = "nginx" ]; then
+      - if [ "$IMAGE_TAG_NAME" = "nginx" ]; then
           docker build -t nginx -f nginx/Dockerfile . ;
           docker tag nginx:latest $REPO_URI_NGINX:$IMAGE_TAG_NAME;
           docker tag nginx:latest $REPO_URI_NGINX:$IMAGE_TAG_COMMIT; fi
@@ -32,5 +32,5 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
-      - if [ $IMAGE_TAG_NAME = "master" ]; then docker push --all-tags $REPO_URI_NODEJS; fi
-      - if [ $IMAGE_TAG_NAME = "nginx" ]; then docker push --all-tags $REPO_URI_NGINX; fi
+      - if [ "$IMAGE_TAG_NAME" = "master" ]; then docker push --all-tags $REPO_URI_NODEJS; fi
+      - if [ "$IMAGE_TAG_NAME" = "nginx" ]; then docker push --all-tags $REPO_URI_NGINX; fi

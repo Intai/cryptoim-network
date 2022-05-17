@@ -13,17 +13,17 @@
     },
     "VpcId": {
       "Type": "String",
-      "Default": "vpc-07d198f88bb94061c",
+      "Default": "vpc-027710e9e684cf9d1",
       "Description": "The identifier of the virtual private cloud (VPC)."
     },
     "Subnet1": {
       "Type": "String",
-      "Default": "subnet-038eb3c816a53d4c1",
+      "Default": "subnet-042ab4a5eb04dc991",
       "Description": "One subnet per Availability Zone."
     },
     "Subnet2": {
       "Type": "String",
-      "Default": "subnet-0b06cfa7af1f9b258",
+      "Default": "subnet-076ae411c575a75be",
       "Description": "One subnet per Availability Zone."
     },
     "CertificateArn": {
