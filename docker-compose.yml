@@ -3,12 +3,12 @@ version: '3'
 services:
   nodejs:
     image: cyphrim/nodejs
-    environment:
-      APP_DOMAIN: http://localhost:443
-      GUN_DOMAIN: http://localhost:443
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        APP_DOMAIN: http://localhost:443
+        GUN_DOMAIN: http://localhost:443
 
   nginx:
     depends_on:
