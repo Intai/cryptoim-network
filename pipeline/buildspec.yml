@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     APP_DOMAIN: "https://cyphrim.com"
-    GUN_DOMAIN: "https://cyphrim.com"
+    GUN_DOMAIN: "https://cyphrim.com:443"
 phases:
   pre_build:
     commands:
