@@ -25,7 +25,7 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker images...
       - if [ "$IMAGE_TAG_NAME" = "master" ]; then
-          docker build --build-arg TIMESTAMP="$(date +%s)" -t nodejs . ;
+          docker build --build-arg TIMESTAMP="$(date +%s)" --build-arg APP_DOMAIN --build-arg GUN_DOMAIN -t nodejs . ;
           docker tag nodejs:latest $REPO_URI_NODEJS:$IMAGE_TAG_NAME;
           docker tag nodejs:latest $REPO_URI_NODEJS:$IMAGE_TAG_COMMIT; fi
       - if [ "$IMAGE_TAG_NAME" = "nginx" ]; then
