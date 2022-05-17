@@ -18,15 +18,7 @@
         {
           "name": "CONTAINER_IMAGE",
           "value": "<CONTAINER_IMAGE_NODEJS>"
-        },
-        {
-          "name": "APP_DOMAIN",
-          "value": "https://cyphrim.com"
-        },
-        {
-          "name": "GUN_DOMAIN",
-          "value": "https://cyphrim.com"
-        },
+        }
       ]
     },
     {
