@@ -150,6 +150,53 @@
         }]
       }
     },
+    "CloudWatchEventServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Join": [
+            "-", [
+              "cwe-role",
+              { "Ref": "AWS::Region" },
+              { "Ref": "AWSStackName" }
+            ]
+          ]
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "events.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }]
+        },
+        "MaxSessionDuration": 3600,
+        "Path": "/",
+        "Policies": [{
+          "PolicyName": {
+            "Fn::Join": [
+              "-", [
+                "start-pipeline-execution",
+                { "Ref": "AWS::Region" },
+                { "Ref": "AWSStackName" }
+              ]
+            ]
+          },
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Effect": "Allow",
+              "Action": "codepipeline:StartPipelineExecution",
+              "Resource": {
+                "Fn::GetAtt": ["CodePipeline", "Arn"]
+              }
+            }]
+          }
+        }]
+      }
+    },
     "CodePipelineSourceConnection": {
       "Type": "AWS::CodeStarConnections::Connection",
       "Properties": {
