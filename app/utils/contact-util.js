@@ -1,6 +1,6 @@
 import { identity, memoizeWith, pick, pipe } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
-import { getGun, Sea } from './gun-util'
+import { Sea, getGun, gunOnce } from './gun-util'
 import { getAuthUser, getAuthPair } from './login-util'
 
 const uuidCache = {}
@@ -80,7 +80,7 @@ export const getContact = cb => {
 }
 
 export const setContact = (pub, cb) => {
-  getGun().user(pub).once(data => {
+  getGun().user(pub).on(gunOnce(data => {
     if (!data) {
       cb({ err: 'Invalid invite URL.' })
     } else {
@@ -101,7 +101,7 @@ export const setContact = (pub, cb) => {
         cb(contact)
       })
     }
-  })
+  }))
 }
 
 export const removeContact = contact => {

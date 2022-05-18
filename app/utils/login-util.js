@@ -1,5 +1,5 @@
 import { once } from 'ramda'
-import { getGun, Sea } from './gun-util'
+import { Sea, getGun, gunOnce } from './gun-util'
 
 export const getAuthPair = (() => {
   let authPair
@@ -21,16 +21,16 @@ export const getAuthUser = once(() => {
 })
 
 export const hasUser = (alias, cb) => {
-  getGun().get(`~@${alias}`).once(data => {
+  getGun().get(`~@${alias}`).on(gunOnce(data => {
     cb(!!data)
-  })
+  }))
 }
 
 export const recall = (cb) => {
   getAuthUser().recall({ sessionStorage: true })
 
   if (getAuthUser().is) {
-    getAuthUser().once(data => {
+    getAuthUser().on(gunOnce(data => {
       if (data) {
         const { alias, name } = data
         cb({
@@ -48,7 +48,7 @@ export const recall = (cb) => {
 
       // tell server not to render the login page.
       document.cookie = 'recall=true;'
-    })
+    }))
   } else {
     cb({
       err: 'Wrong user or password.',

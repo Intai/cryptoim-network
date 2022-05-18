@@ -1,7 +1,7 @@
 import { memoizeWith, pipe, prop } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import { jsonParse } from './common-util'
-import { getGun, Sea } from './gun-util'
+import { Sea, getGun, gunOnce } from './gun-util'
 import { getAuthUser, getAuthPair } from './login-util'
 
 const decryptMessage = async (forPair, fromEpub, encrypted) => {
@@ -115,7 +115,7 @@ export const sendNextMessage = (nextPair, conversePub, content, cb) => {
 }
 
 export const sendMessageToUser = (toPub, conversePub, content, cb) => {
-  getGun().user(toPub).once(user => {
+  getGun().user(toPub).on(gunOnce(user => {
     if (!user?.epub) {
       cb({ err: 'Invalid contact.' })
     } else {
@@ -132,7 +132,7 @@ export const sendMessageToUser = (toPub, conversePub, content, cb) => {
         cb
       )
     }
-  })
+  }))
 }
 
 const uuidCache = {}
@@ -226,7 +226,7 @@ export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => 
     .get('conversations')
     .get(`conversation-${converseUuid}`)
 
-  converseNode.once(encrypted => {
+  converseNode.on(gunOnce(encrypted => {
     if (encrypted) {
       Sea.decrypt(encrypted, getAuthPair()).then(data => {
         const conversation = {
@@ -240,7 +240,7 @@ export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => 
         })
       })
     }
-  })
+  }))
 }
 
 export const expireConversationMessage = (converseUuid, message) => {
@@ -250,7 +250,7 @@ export const expireConversationMessage = (converseUuid, message) => {
     .get('conversations')
     .get(`conversation-${converseUuid}`)
 
-  converseNode.once(encrypted => {
+  converseNode.on(gunOnce(encrypted => {
     if (encrypted) {
       Sea.decrypt(encrypted, getAuthPair()).then(data => {
         // double check if the message is in the conversation.
@@ -267,5 +267,5 @@ export const expireConversationMessage = (converseUuid, message) => {
         }
       })
     }
-  })
+  }))
 }

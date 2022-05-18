@@ -29,7 +29,16 @@ if (canUseDOM()) {
   getGun = () => process.gun
 }
 
+const gunOnce = func => (...args) => {
+  const ev = args[3]
+  if (ev) {
+    ev.off()
+  }
+  return func(...args)
+}
+
 export {
   Sea,
   getGun,
+  gunOnce,
 }
