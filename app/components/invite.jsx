@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import QRCode from 'qrcode'
 import { createUseBdux } from 'bdux/hook'
@@ -6,9 +6,10 @@ import { LocationAction } from 'bdux-react-router'
 import PanelHeader from './panel-header'
 import Anchor from './anchor'
 import ContactList from './contact-list'
-import { fontLarge } from './typography'
+import { inputBackground } from './color'
+import { fontLarge, fontSmall } from './typography'
 import { scrollbar } from './scrollbar'
-import { canUseDOM, getAppUrl } from '../utils/common-util'
+import { canUseDOM, getAppUrl, getStaticUrl } from '../utils/common-util'
 import LoginStore from '../stores/login-store'
 
 const Scrollbar = styled.div`
@@ -42,6 +43,38 @@ const InviteAnchor = styled(Anchor)`
   margin-top: 5px;
 `
 
+const CopyContainer = styled.div`
+  display: inline-block;
+  vertical-align: top;
+  position: relative;
+`
+
+const CopyIcon = styled.img`
+  vertical-align: top;
+  margin: 6px 0 0 10px;
+  height: 1em;
+  opacity: 0.5;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+  }
+`
+
+const CopyTooltip = styled.div`
+  ${fontSmall}
+  ${inputBackground}
+  color: #000;
+  position: absolute;
+  top: -36px;
+  left: -48px;
+  display: none;
+  white-space: nowrap;
+  padding: 10px;
+  pointer-events: none;
+  ${({ isCopied }) => isCopied && 'display: block;'}
+`
+
 const getFromText = profileName => {
   if (profileName) {
     const truncated = (profileName.length > 10)
@@ -58,6 +91,8 @@ const useBdux = createUseBdux({
 
 const Invite = (props) => {
   const { state: { login }, dispatch } = useBdux(props)
+  const [isCopied, setIsCopied] = useState(false)
+  const timeoutRef = useRef()
   const { alias, name, pair } = login
   const profileName = name || alias
   const canShare = canUseDOM() && navigator.share
@@ -80,12 +115,30 @@ const Invite = (props) => {
   const handleShare = useCallback(e => {
     if (canShare) {
       navigator.share({
-        title: `CyphrIM%20invite${getFromText(profileName)}`,
+        title: `CyphrIM invite${getFromText(profileName)}`,
         url: inviteUrl,
       })
       e.preventDefault()
     }
   }, [canShare, inviteUrl, profileName])
+
+  const handleCopy = useCallback(() => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(inviteUrl)
+      setIsCopied(true)
+
+      // dismiss the tooltip after 300ms.
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = setTimeout(() => {
+        setIsCopied(false)
+      }, 1000)
+    }
+  }, [inviteUrl])
+
+  useEffect(() => () => {
+    // clean up timeout for the copyied tooltip.
+    clearTimeout(timeoutRef.current)
+  }, [])
 
   return (
     <>
@@ -112,6 +165,16 @@ const Invite = (props) => {
               {canShare ? 'Share': 'Email'}
               {' your invite link'}
             </InviteAnchor>
+            <CopyContainer>
+              <CopyIcon
+                src={getStaticUrl('/icons/copy.svg')}
+                title="Copy your invite link"
+                onClick={handleCopy}
+              />
+              <CopyTooltip isCopied={isCopied}>
+                {'Your invite link copied'}
+              </CopyTooltip>
+            </CopyContainer>
           </InviteMessage>
         </InviteMessageWrap>
 

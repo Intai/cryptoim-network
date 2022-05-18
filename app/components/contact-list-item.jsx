@@ -23,7 +23,7 @@ const Name = styled.div`
   overflow: hidden;
 `
 
-const KeyTrash = styled.img`
+const TrashIcon = styled.img`
   flex: 0 0 auto;
   height: 14px;
   padding: 1px 0 0 10px;
@@ -52,7 +52,7 @@ const ContactListItem = ({ contact, conversations, dispatch }) => {
   return (
     <ListItem>
       <Name onClick={handleNavigate}>{contactName}</Name>
-      <KeyTrash
+      <TrashIcon
         src={getStaticUrl('/icons/trash.svg')}
         title="Delete"
         onClick={handleDelete}
