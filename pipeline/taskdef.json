@@ -31,12 +31,6 @@
           "name": "AWS_ACCESS_KEY_ID",
           "value": "AKIA4JXPJ43BLCMJGU5O"
         }
-      ],
-      "secrets": [
-        {
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:845536683714:secret:CYPHRIM_GUN_AWS_SECRET_ACCESS_KEY-AeX8Cd",
-          "name": "AWS_SECRET_ACCESS_KEY"
-        }
       ]
     },
     {
