@@ -167,7 +167,7 @@ const Invite = (props) => {
             </InviteAnchor>
             <CopyContainer>
               <CopyIcon
-                src={getStaticUrl('/icons/copy.svg')}
+                src={getStaticUrl('/icons/clipboard.svg')}
                 title="Copy your invite link"
                 onClick={handleCopy}
               />
