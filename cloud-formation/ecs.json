@@ -95,7 +95,8 @@
           }]
         },
         "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+          "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+          "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
         ],
         "MaxSessionDuration": 3600,
         "Path": "/"
