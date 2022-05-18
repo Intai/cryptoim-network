@@ -8,7 +8,7 @@ import Anchor from './anchor'
 import ContactList from './contact-list'
 import { fontLarge } from './typography'
 import { scrollbar } from './scrollbar'
-import { getAppUrl } from '../utils/common-util'
+import { canUseDOM, getAppUrl } from '../utils/common-util'
 import LoginStore from '../stores/login-store'
 
 const Scrollbar = styled.div`
@@ -58,13 +58,15 @@ const useBdux = createUseBdux({
 
 const Invite = (props) => {
   const { state: { login }, dispatch } = useBdux(props)
-  const profileName = login.name || login.alias
+  const { alias, name, pair } = login
+  const profileName = name || alias
+  const canShare = canUseDOM() && navigator.share
 
   const setCanvasNode = useCallback((node) => {
     if (node) {
-      QRCode.toCanvas(node, login.pair.pub)
+      QRCode.toCanvas(node, pair.pub)
     }
-  }, [login.pair])
+  }, [pair])
 
   const handleInviteScan = useCallback(e => {
     dispatch(LocationAction.push(e.currentTarget.href))
@@ -73,7 +75,17 @@ const Invite = (props) => {
 
   // replace dots to avoid routing confusion. assuming there is no
   // space in public key. need to convert back on the receiving end.
-  const inviteUrl = getAppUrl(`/invite?pub=${login.pair.pub}`)
+  const inviteUrl = getAppUrl(`/invite?pub=${pair.pub}`)
+
+  const handleShare = useCallback(e => {
+    if (canShare) {
+      navigator.share({
+        title: `CyphrIM%20invite${getFromText(profileName)}`,
+        url: inviteUrl,
+      })
+      e.preventDefault()
+    }
+  }, [canShare, inviteUrl, profileName])
 
   return (
     <>
@@ -95,8 +107,10 @@ const Invite = (props) => {
             <InviteAnchor
               href={`mailto:?subject=CyphrIM%20invite${getFromText(profileName)}&body=${inviteUrl}`}
               kind="primary"
+              onClick={handleShare}
             >
-              {'Email your invite link'}
+              {canShare ? 'Share': 'Email'}
+              {' your invite link'}
             </InviteAnchor>
           </InviteMessage>
         </InviteMessageWrap>
