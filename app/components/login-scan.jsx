@@ -5,14 +5,14 @@ import { useBdux } from 'bdux/hook'
 import Button from './button'
 import Select from './select'
 import { alertBackground, secondaryBorder } from './color'
-import { jsonParse } from '../utils/common-util'
+import { canUseDOM, jsonParse } from '../utils/common-util'
 import * as LoginAction from '../actions/login-action'
 
 const Video = styled.video`
   ${secondaryBorder}
   border: 1px solid;
   width: calc(100vw - 30px);
-  max-height: calc(100vh - 142px);
+  max-height: calc(var(--vh, 100vh) - 142px);
   margin: 15px 0 20px;
   position: relative;
 `
@@ -56,6 +56,11 @@ const LoginScan = (props) => {
   }, [dispatch])
 
   useEffect(() => {
+    if (canUseDOM()) {
+      const vh = window.innerHeight
+      document.documentElement.style.setProperty('--vh', `${vh}px`)
+    }
+
     // detect cameras.
     QrScanner.hasCamera().then(setHasCamera)
     QrScanner.listCameras().then(setCameras)
