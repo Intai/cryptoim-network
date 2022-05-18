@@ -1,11 +1,13 @@
 import React from 'react'
 import styled from 'styled-components'
+import PanelHeader from './panel-header'
 import PromoFeatures from './promo-features'
 import { scrollbar } from './scrollbar'
 import { getStaticUrl } from '../utils/common-util'
 
 const Scrollbar = styled.div`
   ${scrollbar}
+  flex: 1;
 `
 
 const Container = styled.div`
@@ -13,7 +15,7 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100%;
 `
 
 const Logo = styled.img`
@@ -22,12 +24,15 @@ const Logo = styled.img`
 `
 
 const Home = () => (
-  <Scrollbar>
-    <Container>
-      <Logo src={getStaticUrl('/images/logo.png')} />
-      <PromoFeatures />
-    </Container>
-  </Scrollbar>
+  <>
+    <PanelHeader />
+    <Scrollbar>
+      <Container>
+        <Logo src={getStaticUrl('/images/logo.png')} />
+        <PromoFeatures />
+      </Container>
+    </Scrollbar>
+  </>
 )
 
 export default React.memo(Home)
