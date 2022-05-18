@@ -72,7 +72,9 @@ export const getContact = cb => {
     })
 
   return () => {
-    pipe(...unsubs)()
+    if (unsubs.length > 0) {
+      pipe(...unsubs)()
+    }
     if (ev) {
       ev.off()
     }

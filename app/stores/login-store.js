@@ -72,7 +72,7 @@ const whenSuccess = when(
     identity,
     ({ action: { alias, name, pair } }) => ({
       state: {
-        isAuthenticated: true,
+        isAuthenticated: !!pair,
         isAfterRecall: true,
         err: null,
         alias,

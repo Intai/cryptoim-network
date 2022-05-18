@@ -1,4 +1,4 @@
-import { memoizeWith, pipe, prop } from 'ramda'
+import { F, memoizeWith, pipe, prop } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import { jsonParse } from './common-util'
 import { Sea, getGun, gunOnce } from './gun-util'
@@ -218,7 +218,9 @@ export const getConversationMessage = cb => {
 
   // be able to unsubscribe from the conversation and all messages recursively.
   pushUnsub(unsub, unsubs)
-  return pipe(...unsubs)
+  return unsubs.length > 0
+    ? pipe(...unsubs)
+    : F
 }
 
 export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => {
