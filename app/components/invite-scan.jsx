@@ -25,7 +25,7 @@ const Video = styled.video`
   ${secondaryBorder}
   border: 1px solid;
   width: calc(100% - 30px);
-  max-height: calc(var(--vh, 100vh) - 203px);
+  max-height: calc(var(--vh, 100vh) - 218px);
   margin: 15px 0 20px;
   position: relative;
 `
