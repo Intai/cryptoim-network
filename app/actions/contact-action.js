@@ -47,3 +47,7 @@ export const remove = contact => {
     pub: contact.pub,
   }
 }
+
+export const clearError = () => ({
+  type: ActionTypes.CONTACT_CLEAR_INVITE_ERROR,
+})

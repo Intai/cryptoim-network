@@ -9,7 +9,10 @@ import { fontLarge } from './typography'
 import * as ContactAction from '../actions/contact-action'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
+import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
+
+const MAX_RETRY = 2
 
 const InviteMessageWrap = styled.div`
   text-align: center;
@@ -29,15 +32,17 @@ const getRequestMessage = ({ alias, name, pair: { pub } }) => (
 
 const useBdux = createUseBdux({
   login: LoginStore,
+  contactList: ContactListStore,
   conversationList: ConversationListStore,
 })
 
 const InviteResult = props => {
   const [searchParams] = useSearchParams()
   const publicKey = searchParams.get('pub')
-  const { state: { login, conversationList }, dispatch } = useBdux(props)
+  const { state: { login, contactList, conversationList }, dispatch } = useBdux(props)
   const { conversations, errors } = conversationList
-  const error = publicKey ? errors[publicKey] : 'Invalid public key.'
+  const error = (publicKey ? errors[publicKey] : 'Invalid public key.') || contactList.err
+  const timeoutRef = useRef()
   const countRef = useRef(0)
 
   const sendRequest = () => {
@@ -55,24 +60,34 @@ const InviteResult = props => {
       if (conversation) {
         dispatch(LocationAction.replace(`/conversation/${conversation.uuid}`))
       }
-    } else if (countRef.current < 1) {
+    } else if (countRef.current < MAX_RETRY) {
       if (publicKey) {
+        dispatch(ContactAction.clearError())
         dispatch(ConversationAction.clearError(publicKey))
       }
       countRef.current += 1
-      setTimeout(sendRequest, 300)
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = setTimeout(sendRequest, 300)
     }
-  })
+  // when error message changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error])
 
   useEffect(() => {
     // gun doesn't return user in the callback if too early.
     // please remove the timeout when fixed.
-    setTimeout(sendRequest, 300)
-  // didMount
+    clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(sendRequest, 300)
+
+    return () => {
+      // clean up the leftover timeout.
+      clearTimeout(timeoutRef.current)
+    }
+  // didMount and willUnmount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return error && countRef.current >= 1 && (
+  return error && countRef.current >= MAX_RETRY && (
     <>
       <PanelHeader>Invite link</PanelHeader>
       <InviteMessageWrap>

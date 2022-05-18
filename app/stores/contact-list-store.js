@@ -94,6 +94,18 @@ const whenDelete = when(
   ])
 )
 
+const whenClearInviteError = when(
+  isAction(ActionTypes.CONTACT_CLEAR_INVITE_ERROR),
+  converge(mergeDeepRight, [
+    identity,
+    () => ({
+      state: {
+        err: null,
+      },
+    }),
+  ])
+)
+
 export const getReducer = () => {
   const reducerStream = new Bus()
   return {
@@ -102,6 +114,7 @@ export const getReducer = () => {
       .map(whenInit)
       .map(whenAppend)
       .map(whenInviteError)
+      .map(whenClearInviteError)
       .map(whenDelete)
       .map(prop('state')),
   }
