@@ -104,7 +104,7 @@ export const setContact = (pub, cb) => {
         ...cleanContact(data),
         uuid,
       }
-      console.log('intai add uuid', contact)
+      console.log('intai add uuid', data, { ...data }, cleanContact(data), contact)
       Sea.encrypt(contact, getAuthPair()).then(encrypted => {
         getAuthUser()
           .get('contacts')
