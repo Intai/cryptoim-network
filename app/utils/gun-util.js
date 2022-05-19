@@ -1,13 +1,14 @@
 import { once } from 'ramda'
 import { canUseDOM, getGunUrl } from './common-util'
 
+let Gun
 let Sea
 let getGun
 
 // in browser,
 // initialise gun here with indexedDB.
 if (canUseDOM()) {
-  const Gun = require('gun/gun')
+  Gun = require('gun/gun')
   require('gun/sea')
   // require('gun/axe')
   require('gun/lib/radix')
@@ -22,8 +23,7 @@ if (canUseDOM()) {
   }))
 } else {
   // on server, gun will be initialised with express in server.prod.js
-  const Gun = require('gun')
-  require('gun/sea')
+  Gun = require('gun')
 
   Sea = Gun.SEA
   getGun = () => process.gun
@@ -38,6 +38,7 @@ const gunOnce = func => (...args) => {
 }
 
 export {
+  Gun,
   Sea,
   getGun,
   gunOnce,

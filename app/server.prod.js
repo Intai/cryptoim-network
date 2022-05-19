@@ -1,10 +1,10 @@
 import './settings'
 import fs from 'fs'
 import path from 'path'
-const Gun = require('gun')
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import { ServerStyleSheet } from 'styled-components'
+import { Gun } from './utils/gun-util'
 import AppRoot from './roots/app-root'
 
 const app = express()
