@@ -34,6 +34,7 @@ if (canUseDOM()) {
 }
 
 const gunOnce = func => (...args) => {
+  console.log('intai once', args)
   const ev = args[3]
   if (ev) {
     ev.off()
