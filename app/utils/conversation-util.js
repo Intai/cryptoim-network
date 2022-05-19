@@ -125,7 +125,7 @@ export const sendMessageToUser = (toPub, conversePub, content, cb) => {
   }
 
   getGun().user(toPub).on(gunOnce(whenUser, user => {
-    if (!user?.epub) {
+    if (!user) {
       cb({ err: 'Invalid contact.' })
     } else {
       sendMessage(

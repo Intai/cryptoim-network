@@ -22,9 +22,7 @@ export const init = () => mergeAll(
 )
 
 export const invite = pubicKey => fromCallback(callback => {
-  console.log('intai invite', pubicKey)
   setContact(pubicKey, contact => {
-    console.log('intai invite contact', pubicKey, contact)
     const { err } = contact
 
     if (err) {

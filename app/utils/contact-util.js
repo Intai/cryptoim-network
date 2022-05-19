@@ -61,7 +61,6 @@ export const getContact = cb => {
       if (encrypted) {
         Sea.decrypt(encrypted, getAuthPair()).then(contact => {
           if (contact) {
-            console.log('intai get contact', contact)
             const { uuid, pub, name } = contact
             uuidCache[pub] = uuid
             nameCache[pub] = name
@@ -90,29 +89,23 @@ const whenUser = user => (
 )
 
 export const setContact = (pub, cb) => {
-  console.log('intai set contact', pub)
   if (!pub) {
     cb({ err: 'Invalid invite URL.' })
     return
   }
 
   getGun().user(pub).on(gunOnce(whenUser, data => {
-    console.log('intai get user', pub, data)
     if (!data) {
       cb({ err: 'Invalid invite URL.' })
     } else {
-      const { alias, name, epub, pub } = data
       const uuid = uuidCache[pub] || uuidv4()
       uuidCache[pub] = uuid
-      nameCache[pub] = name
+      nameCache[pub] = data.name
       const contact = {
-        alias,
-        name,
-        epub,
-        pub,
+        ...cleanContact(data),
         uuid,
       }
-      console.log('intai add uuid', data, { ...data }, cleanContact(data), contact)
+
       Sea.encrypt(contact, getAuthPair()).then(encrypted => {
         getAuthUser()
           .get('contacts')
