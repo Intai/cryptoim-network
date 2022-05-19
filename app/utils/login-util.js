@@ -45,10 +45,10 @@ export const hasUser = (alias, cb) => {
   }))
 }
 
-export const recall = (cb) => {
+export const recall = (authPair, cb) => {
   getAuthUser().recall({ sessionStorage: true })
 
-  if (getAuthUser().is) {
+  if (getAuthUser().is || authPair) {
     getAuthUser().on(gunOnce(data => {
       getAuthPair(pair => {
         if (data) {
@@ -81,21 +81,25 @@ export const recall = (cb) => {
 }
 
 export const authorise = (alias, password, cb) => {
-  getAuthUser().auth(alias, password, ({ err }) => {
+  getAuthUser().auth(alias, password, ack => {
+    const { err, sea } = ack
+
     if (err) {
       cb({ err })
     } else {
-      recall(cb)
+      recall(sea, cb)
     }
   })
 }
 
 export const authoriseQrCode = (pair, cb) => {
-  getAuthUser().auth(pair, ({ err }) => {
+  getAuthUser().auth(pair, ack => {
+    const { err, sea } = ack
+
     if (err) {
       cb({ err })
     } else {
-      recall(cb)
+      recall(sea, cb)
     }
   })
 }

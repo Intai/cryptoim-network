@@ -19,7 +19,7 @@ export const init = () => mergeAll(
   }),
 
   fromCallback(callback => {
-    recall(({ alias, name, pair, err }) => {
+    recall(null, ({ alias, name, pair, err }) => {
       if (err || !alias) {
         callback({
           type: ActionTypes.LOGIN_RECALL_ERROR,
