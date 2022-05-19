@@ -20,6 +20,10 @@
           "value": "<CONTAINER_IMAGE_NODEJS>"
         },
         {
+          "name": "AWS_S3_BUCKET",
+          "value": "radata-cyphrim"
+        },
+        {
           "name": "AWS_REGION",
           "value": "us-east-1"
         },
