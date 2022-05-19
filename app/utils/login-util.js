@@ -45,10 +45,10 @@ export const hasUser = (alias, cb) => {
   }))
 }
 
-export const recall = (authPair, cb) => {
+export const recall = cb => {
   getAuthUser().recall({ sessionStorage: true })
 
-  if (getAuthUser().is || authPair) {
+  if (getAuthUser().is) {
     getAuthUser().on(gunOnce(data => {
       getAuthPair(pair => {
         if (data) {
@@ -82,28 +82,29 @@ export const recall = (authPair, cb) => {
 
 export const authorise = (alias, password, cb, iteration = 0) => {
   getAuthUser().auth(alias, password, ack => {
-    const { err, sea } = ack
-    console.log('intai auth', ack)
+    const { err } = ack
+
     if (err) {
+      // workaround bug in user.auth. please remove the iteration if fixed.
       if (iteration <= 0 && /Wrong user or password/i.test(err)) {
         authorise(alias, password, cb, iteration + 1)
       } else {
         cb({ err })
       }
     } else {
-      recall(sea, cb)
+      recall(cb)
     }
   })
 }
 
 export const authoriseQrCode = (pair, cb) => {
   getAuthUser().auth(pair, ack => {
-    const { err, sea } = ack
+    const { err } = ack
 
     if (err) {
       cb({ err })
     } else {
-      recall(sea, cb)
+      recall(cb)
     }
   })
 }

@@ -25,6 +25,7 @@ if (canUseDOM()) {
   // on server,
   // initialise gun here to be used with express in server.prod.js
   Gun = require('gun')
+  // workaround bug in rs3. please remove if fixed.
   global.Gun = Gun
   require('./gun-hack')
 
