@@ -97,11 +97,15 @@ export const setContact = (pub, cb) => {
     if (!data) {
       cb({ err: 'Invalid invite URL.' })
     } else {
+      const { alias, name, epub, pub } = data
       const uuid = uuidCache[pub] || uuidv4()
       uuidCache[pub] = uuid
-      nameCache[pub] = data.name
+      nameCache[pub] = name
       const contact = {
-        ...cleanContact(data),
+        alias,
+        name,
+        epub,
+        pub,
         uuid,
       }
       console.log('intai add uuid', data, { ...data }, cleanContact(data), contact)
