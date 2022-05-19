@@ -7,7 +7,7 @@ var path = require('path'),
 
 var isExternal = function({ request }, callback) {
   if (request[0] !== '.') {
-    return callback(null, 'commonjs ' + request)
+    return callback(null, 'commonjs2 ' + request)
   }
   callback()
 }
@@ -56,7 +56,6 @@ module.exports = {
     extensions: ['.js', '.jsx', `.${env}.js`, `.${env}.jsx`],
   },
   module: {
-    noParse: /(gun|sea|axe)\.js$/,
     rules: [
       {
         test: /\.jsx?$/,
