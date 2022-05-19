@@ -56,7 +56,6 @@ module.exports = {
     extensions: ['.js', '.jsx', `.${env}.js`, `.${env}.jsx`],
   },
   module: {
-    noParse: /(gun|sea|axe)\.js$/,
     rules: [
       {
         test: /\.jsx?$/,

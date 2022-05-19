@@ -1,7 +1,7 @@
 import './settings'
 import fs from 'fs'
 import path from 'path'
-import Gun from 'gun'
+const Gun = require('gun')
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import { ServerStyleSheet } from 'styled-components'
