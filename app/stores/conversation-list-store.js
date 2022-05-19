@@ -134,7 +134,7 @@ const whenAppendMessage = when(
 )
 
 const whenRemove = when(
-  isAction(ActionTypes.CONVERSATION_REMOVE),
+  isAction(ActionTypes.CONVERSATION_DELETE),
   converge(mergeDeepRight, [
     identity,
     ({ state, action: { conversation } }) => ({

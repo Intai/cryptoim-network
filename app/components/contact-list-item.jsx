@@ -1,10 +1,11 @@
 import { find, propEq } from 'ramda'
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 import { LocationAction } from 'bdux-react-router'
 import { secondaryBackground } from './color'
 import { getStaticUrl } from '../utils/common-util'
 import * as ContactAction from '../actions/contact-action'
+import * as ConversationAction from '../actions/conversation-action'
 
 const ListItem = styled.li`
   display: flex;
@@ -38,16 +39,22 @@ const ContactListItem = ({ contact, conversations, dispatch }) => {
   const { alias, name, pub } = contact
   const contactName = name || alias || pub
 
+  const conversation = useMemo(() => (
+    find(propEq('conversePub', pub), conversations)
+  ), [conversations, pub])
+
   const handleNavigate = useCallback(() => {
-    const conversation = find(propEq('conversePub', pub), conversations)
     if (conversation) {
       dispatch(LocationAction.push(`/conversation/${conversation.uuid}`))
     }
-  }, [conversations, dispatch, pub])
+  }, [conversation, dispatch])
 
   const handleDelete = useCallback(() => {
     dispatch(ContactAction.remove(contact))
-  }, [contact, dispatch])
+    if (conversation) {
+      dispatch(ConversationAction.remove(conversation))
+    }
+  }, [contact, conversation, dispatch])
 
   return (
     <ListItem>

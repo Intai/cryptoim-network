@@ -198,6 +198,13 @@ export const getConversation = cb => {
   }
 }
 
+export const removeConversation = conversation => {
+  getAuthUser()
+    .get('conversations')
+    .get(`conversation-${conversation.uuid}`)
+    .put(null)
+}
+
 const pushUnsub = (unsub, unsubs) => {
   if (unsubs.indexOf(unsub) < 0) {
     unsubs.push(unsub)
