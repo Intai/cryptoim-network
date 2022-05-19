@@ -35,7 +35,7 @@ const Message = styled.div`
 
 const RequestListItem = ({ request, dispatch }) => {
   const { fromPub, content: { text } } = request
-
+  console.log('intai render request', request)
   const handleAccept = useCallback(() => {
     dispatch(ContactAction.invite(fromPub))
     dispatch(ConversationAction.acceptRequest(request))
