@@ -72,7 +72,7 @@
         },
         "Environment": {
           "Type": "LINUX_CONTAINER",
-          "Image": "aws/codebuild/standard:4.0",
+          "Image": "aws/codebuild/standard:5.0",
           "ComputeType": "BUILD_GENERAL1_SMALL",
           "EnvironmentVariables": [{
             "Name": "ACCOUNT_ID",

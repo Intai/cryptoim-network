@@ -23,7 +23,9 @@ if (canUseDOM()) {
   }))
 } else {
   // on server, gun will be initialised with express in server.prod.js
-  Gun = require('gun')
+  Gun = require('gun/gun')
+  require('gun')
+  console.log('intai gun', Gun.obj)
 
   Sea = Gun.SEA
   getGun = () => process.gun
