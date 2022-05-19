@@ -22,10 +22,11 @@ if (canUseDOM()) {
     localStorage: true,
   }))
 } else {
-  // on server, gun will be initialised with express in server.prod.js
-  Gun = require('gun/gun')
-  require('gun')
-  console.log('intai gun', Gun.obj)
+  // on server,
+  // initialise gun here to be used with express in server.prod.js
+  Gun = require('gun')
+  global.Gun = Gun
+  require('./gun-hack')
 
   Sea = Gun.SEA
   getGun = () => process.gun
