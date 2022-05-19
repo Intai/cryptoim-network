@@ -1,4 +1,4 @@
-import { identity, memoizeWith, pick, pipe } from 'ramda'
+import { F, identity, memoizeWith, pick, pipe } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import { Sea, getGun, gunOnce } from './gun-util'
 import { getAuthUser, getAuthPair } from './login-util'
@@ -16,6 +16,9 @@ const cleanContact = pick([
 // memoize because only need to subscrube to each contact once.
 const updateContact = memoizeWith(identity, (pub, cb) => {
   let ev
+  if (!pub) {
+    return F
+  }
 
   getGun()
     .user(pub)
@@ -58,6 +61,7 @@ export const getContact = cb => {
       if (encrypted) {
         Sea.decrypt(encrypted, getAuthPair()).then(contact => {
           if (contact) {
+            console.log('intai get contact', contact)
             const { uuid, pub, name } = contact
             uuidCache[pub] = uuid
             nameCache[pub] = name
