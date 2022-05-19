@@ -1,16 +1,35 @@
-import { once } from 'ramda'
+import { juxt, once } from 'ramda'
 import { Sea, getGun, gunOnce } from './gun-util'
 
 export const getAuthPair = (() => {
   let authPair
+  let callbacks = []
+
   const subscribe = once(() => {
     getGun().on('auth', ack => {
       authPair = ack.sea
+
+      // if there is a queue waiting for the pair,
+      // trigger all the callback functions.
+      if (callbacks.length > 0) {
+        juxt(callbacks)(authPair)
+        callbacks = []
+      }
     })
   })
 
-  return () => {
+  return cb => {
     subscribe()
+
+    if (cb) {
+      if (authPair) {
+        cb(authPair)
+      } else {
+        // if we don't have the pair yet,
+        // queue up and wait for the auth event.
+        callbacks.push(cb)
+      }
+    }
     return authPair
   }
 })()
@@ -31,20 +50,22 @@ export const recall = (cb) => {
 
   if (getAuthUser().is) {
     getAuthUser().on(gunOnce(data => {
-      if (data) {
-        const { alias, name } = data
-        cb({
-          alias: alias || getAuthUser().is.alias || null,
-          name: name || null,
-          pair: getAuthPair(),
-        })
-      } else {
-        cb({
-          alias: getAuthUser().is.alias,
-          name: null,
-          pair: getAuthPair(),
-        })
-      }
+      getAuthPair(pair => {
+        if (data) {
+          const { alias, name } = data
+          cb({
+            alias: alias || getAuthUser().is.alias || null,
+            name: name || null,
+            pair,
+          })
+        } else {
+          cb({
+            alias: getAuthUser().is.alias,
+            name: null,
+            pair,
+          })
+        }
+      })
 
       // tell server not to render the login page.
       document.cookie = 'recall=true;'
