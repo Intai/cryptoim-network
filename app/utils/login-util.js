@@ -81,6 +81,7 @@ export const recall = (authPair, cb) => {
 }
 
 export const authorise = (alias, password, cb) => {
+  getAuthUser().auth(alias, password)
   getAuthUser().auth(alias, password, ack => {
     const { err, sea } = ack
     console.log('intai auth', ack)
