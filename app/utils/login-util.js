@@ -1,4 +1,4 @@
-import { juxt, once } from 'ramda'
+import { juxt, once, T } from 'ramda'
 import { Sea, getGun, gunOnce } from './gun-util'
 
 export const getAuthPair = (() => {
@@ -40,7 +40,7 @@ export const getAuthUser = once(() => {
 })
 
 export const hasUser = (alias, cb) => {
-  getGun().get(`~@${alias}`).on(gunOnce(data => {
+  getGun().get(`~@${alias}`).on(gunOnce(T, data => {
     cb(!!data)
   }))
 }
@@ -49,7 +49,7 @@ export const recall = cb => {
   getAuthUser().recall({ sessionStorage: true })
 
   if (getAuthUser().is) {
-    getAuthUser().on(gunOnce(data => {
+    getAuthUser().on(gunOnce(T, data => {
       getAuthPair(pair => {
         if (data) {
           const { alias, name } = data

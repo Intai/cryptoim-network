@@ -1,4 +1,4 @@
-import { F, memoizeWith, pipe, prop } from 'ramda'
+import { F, memoizeWith, pipe, prop, T } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import { jsonParse } from './common-util'
 import { Sea, getGun, gunOnce } from './gun-util'
@@ -114,13 +114,17 @@ export const sendNextMessage = (nextPair, conversePub, content, cb) => {
   )
 }
 
+const whenUser = user => (
+  !user || user.epub
+)
+
 export const sendMessageToUser = (toPub, conversePub, content, cb) => {
   if (!toPub) {
     cb({ err: 'Invalid contact.' })
     return
   }
 
-  getGun().user(toPub).on(gunOnce(user => {
+  getGun().user(toPub).on(gunOnce(whenUser, user => {
     if (!user?.epub) {
       cb({ err: 'Invalid contact.' })
     } else {
@@ -233,7 +237,7 @@ export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => 
     .get('conversations')
     .get(`conversation-${converseUuid}`)
 
-  converseNode.on(gunOnce(encrypted => {
+  converseNode.on(gunOnce(T, encrypted => {
     if (encrypted) {
       Sea.decrypt(encrypted, getAuthPair()).then(data => {
         const conversation = {
@@ -257,7 +261,7 @@ export const expireConversationMessage = (converseUuid, message) => {
     .get('conversations')
     .get(`conversation-${converseUuid}`)
 
-  converseNode.on(gunOnce(encrypted => {
+  converseNode.on(gunOnce(T, encrypted => {
     if (encrypted) {
       Sea.decrypt(encrypted, getAuthPair()).then(data => {
         // double check if the message is in the conversation.

@@ -33,13 +33,16 @@ if (canUseDOM()) {
   getGun = () => process.gun
 }
 
-const gunOnce = func => (...args) => {
+const gunOnce = (funcWhen, funcCb) => (...args) => {
   console.log('intai once', args)
-  const ev = args[3]
-  if (ev) {
-    ev.off()
+
+  if (funcWhen(...args)) {
+    const ev = args[3]
+    if (ev) {
+      ev.off()
+    }
+    return funcCb(...args)
   }
-  return func(...args)
 }
 
 export {

@@ -85,6 +85,10 @@ export const getContact = cb => {
   }
 }
 
+const whenUser = user => (
+  !user || user.pub
+)
+
 export const setContact = (pub, cb) => {
   console.log('intai set contact', pub)
   if (!pub) {
@@ -92,7 +96,7 @@ export const setContact = (pub, cb) => {
     return
   }
 
-  getGun().user(pub).on(gunOnce(data => {
+  getGun().user(pub).on(gunOnce(whenUser, data => {
     console.log('intai get user', pub, data)
     if (!data) {
       cb({ err: 'Invalid invite URL.' })
