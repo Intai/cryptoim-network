@@ -1,17 +1,31 @@
 import { filter, find, last, pipe, prop, propEq, reduce, sortBy } from 'ramda'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useParams } from 'react-router'
+import { LocationAction } from 'bdux-react-router'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import PanelHeader from './panel-header'
 import Message from './message'
 import MessageInput from './message-input'
 import { scrollbar } from './scrollbar'
+import { getStaticUrl } from '../utils/common-util'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
 import MessageListStore from '../stores/message-list-store'
+
+const TrashIcon = styled.img`
+  height: 14px;
+  padding: 28px 20px 18px 15px;
+  vertical-align: top;
+  cursor: pointer;
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 1;
+  }
+`
 
 const Container = styled.div`
   max-width: calc(100% - 40px);
@@ -95,6 +109,12 @@ const Conversation = (props) => {
     filterSortMessages(loginPub, conversePub)(messages)
   ), [conversePub, loginPub, messages])
 
+  // delete the conversation and then navigate back to the list.
+  const handleDelete = useCallback(() => {
+    dispatch(ConversationAction.remove(conversation))
+    dispatch(LocationAction.replace('/conversations'))
+  }, [conversation, dispatch])
+
   useEffect(() => {
     dispatch(ConversationAction.selectConversation(conversation, last(filteredMessages)?.timestamp))
   // when selecting a different conversation.
@@ -125,7 +145,14 @@ const Conversation = (props) => {
 
   return (
     <>
-      <PanelHeader>{getContactLabel(contact)}</PanelHeader>
+      <PanelHeader>
+        {getContactLabel(contact)}
+        <TrashIcon
+          src={getStaticUrl('/icons/trash.svg')}
+          title="Delete"
+          onClick={handleDelete}
+        />
+      </PanelHeader>
       <Container>
         <MessageList ref={scrollbarRef}>
           {renderMessages((message, prev) => (

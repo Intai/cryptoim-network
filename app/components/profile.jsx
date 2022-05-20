@@ -44,7 +44,7 @@ const KeyIcon = styled.img`
   height: 20px;
   padding: 26px 15px 0 10px;
   vertical-align: top;
-  opacity: 0.25;
+  opacity: 0.5;
 
   &:hover {
     opacity: 1;

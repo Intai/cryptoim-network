@@ -60,10 +60,12 @@ export const init = () => mergeAll(
 )
 
 export const remove = conversation => {
-  removeConversation(conversation)
-  return {
-    type: ActionTypes.CONVERSATION_DELETE,
-    conversation,
+  if (conversation) {
+    removeConversation(conversation)
+    return {
+      type: ActionTypes.CONVERSATION_DELETE,
+      conversation,
+    }
   }
 }
 

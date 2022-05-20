@@ -28,7 +28,7 @@ const TrashIcon = styled.img`
   flex: 0 0 auto;
   height: 14px;
   padding: 1px 0 0 10px;
-  opacity: 0.25;
+  opacity: 0.5;
 
   &:hover {
     opacity: 1;

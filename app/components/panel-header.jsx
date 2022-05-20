@@ -30,8 +30,15 @@ const Title = styled.div`
   padding: 24px 15px 15px 0;
 `
 
+const Menu = styled.div`
+  flex: 0 0 auto;
+`
+
 const PanelHeader = props => {
   const { href, children } = props
+  const hasChildren = Array.isArray(children)
+  const title = hasChildren ? children[0] : children
+  const menu = hasChildren ? children[1] : null
   const { dispatch } = useBdux(props)
 
   const handleShowConversations = useCallback(e => {
@@ -47,7 +54,8 @@ const PanelHeader = props => {
       >
         <BackIcon src={getStaticUrl('/icons/angle-left.svg')} />
       </BackAnchor>
-      <Title>{children}</Title>
+      <Title>{title}</Title>
+      <Menu>{menu}</Menu>
     </Container>
   )
 }
