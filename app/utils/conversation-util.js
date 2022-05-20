@@ -205,6 +205,36 @@ export const removeConversation = conversation => {
     .put(null)
 }
 
+export const getRemovedRequest = cb => {
+  let ev
+
+  getAuthUser()
+    .get('requests')
+    .map()
+    .on((uuid, _key, _msg, _ev) => {
+      ev = _ev
+      if (uuid) {
+        cb(uuid)
+      }
+    })
+
+  return () => {
+    if (ev) {
+      ev.off()
+    }
+  }
+}
+
+export const removeRequest = message => {
+  if (message.content.type === 'request') {
+    const { uuid } = message
+    getAuthUser()
+      .get('requests')
+      .get(`request-${uuid}`)
+      .put(uuid)
+  }
+}
+
 const pushUnsub = (unsub, unsubs) => {
   if (unsubs.indexOf(unsub) < 0) {
     unsubs.push(unsub)

@@ -1,5 +1,7 @@
 import {
+  assoc,
   converge,
+  either,
   find,
   findIndex,
   identity,
@@ -20,12 +22,17 @@ const isAction = pathEq(
   ['action', 'type'],
 )
 
-const appendRequest = (request, requests, conversations) => {
+const appendRequest = (
+  request,
+  removed,
+  requests,
+  conversations,
+) => {
   const source = requests || []
 
-  // ignore the request if it has been accepted and having conversation.
-  const accepted = conversations && find(propEq('conversePub', request.fromPub), conversations)
-  if (accepted) {
+  // ignore the request if it has been accepted, declined or having conversation.
+  if (removed[request.uuid] || (conversations
+    && find(propEq('conversePub', request.fromPub), conversations))) {
     return source
   }
   // ignore duplications.
@@ -45,20 +52,53 @@ const removeRequest = (request, requests) => {
     : remove(index, 1, source)
 }
 
-const whenReceive = when(
-  isAction(ActionTypes.CONVERSATION_APPEND_REQUEST),
+const whenInit = when(
+  isAction(ActionTypes.CONVERSATION_INIT),
   converge(mergeDeepRight, [
     identity,
-    ({ state, action: { message }, conversationList }) => ({
+    ({ state }) => ({
       state: {
-        requests: appendRequest(message, state?.requests, conversationList?.conversations),
+        removed: state?.removed || {},
+        requests: state?.conversations || [],
       },
     }),
   ])
 )
 
-const whenAccept = when(
-  isAction(ActionTypes.CONVERSATION_ACCEPT_REQUEST),
+const whenRemoved = when(
+  isAction(ActionTypes.REQUEST_REMOVED),
+  converge(mergeDeepRight, [
+    identity,
+    ({ state, action: { uuid } }) => ({
+      state: {
+        removed: assoc(uuid, true, state?.removed || {}),
+      },
+    }),
+  ])
+)
+
+const whenReceive = when(
+  isAction(ActionTypes.REQUEST_APPEND),
+  converge(mergeDeepRight, [
+    identity,
+    ({ state, action: { message }, conversationList }) => ({
+      state: {
+        requests: appendRequest(
+          message,
+          state?.removed,
+          state?.requests,
+          conversationList?.conversations
+        ),
+      },
+    }),
+  ])
+)
+
+const whenAcceptDecline = when(
+  either(
+    isAction(ActionTypes.REQUEST_ACCEPT),
+    isAction(ActionTypes.REQUEST_DECLINE)
+  ),
   converge(mergeDeepRight, [
     identity,
     ({ state, action: { message } }) => ({
@@ -74,8 +114,10 @@ export const getReducer = () => {
   return {
     input: reducerStream,
     output: reducerStream
+      .map(whenInit)
+      .map(whenRemoved)
       .map(whenReceive)
-      .map(whenAccept)
+      .map(whenAcceptDecline)
       .map(prop('state')),
   }
 }

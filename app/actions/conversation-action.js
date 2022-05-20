@@ -8,9 +8,11 @@ import { LocationAction } from 'bdux-react-router'
 import ActionTypes from './action-types'
 import { canUseDOM, getStaticUrl } from '../utils/common-util'
 import {
-  createConversation,
   getConversation,
+  createConversation,
   removeConversation,
+  getRemovedRequest,
+  removeRequest,
   getConversationMessage,
   getMyMessage,
   sendMessageToUser,
@@ -23,6 +25,15 @@ export const init = () => mergeAll(
   once({
     type: ActionTypes.CONVERSATION_INIT,
   }),
+
+  fromBinder(sink => (
+    getRemovedRequest(uuid => {
+      sink({
+        type: ActionTypes.REQUEST_REMOVED,
+        uuid,
+      })
+    })
+  )),
 
   fromBinder(sink => (
     getConversation(conversation => {
@@ -51,7 +62,7 @@ export const init = () => mergeAll(
 
       if (message.content.type === 'request') {
         sink({
-          type: ActionTypes.CONVERSATION_APPEND_REQUEST,
+          type: ActionTypes.REQUEST_APPEND,
           message,
         })
       }
@@ -119,6 +130,7 @@ export const updateLastTimestamp = (conversation, lastTimestamp) => {
 
 export const notifyNewMessage = (contact, conversation, message) => (
   canUseDOM()
+    && typeof message.content === 'string'
     && Notification.permission === 'granted'
     && fromCallback(callback => {
       const { alias, name } = contact
@@ -171,9 +183,21 @@ export const sendRequest = (publicKey, text) => mergeAll(
 export const acceptRequest = message => {
   // create a conversation when accepting the request.
   createConversation(message)
-  // remove the request from data store.
+  // mark the request as processed.
+  removeRequest(message)
+  // remove the request from request list store.
   return {
-    type: ActionTypes.CONVERSATION_ACCEPT_REQUEST,
+    type: ActionTypes.REQUEST_ACCEPT,
+    message,
+  }
+}
+
+export const declineRequest = message => {
+  // mark the request as processed.
+  removeRequest(message)
+  // remove the request from request list store.
+  return {
+    type: ActionTypes.REQUEST_DECLINE,
     message,
   }
 }

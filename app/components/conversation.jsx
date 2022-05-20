@@ -140,7 +140,16 @@ const Conversation = (props) => {
   if (!conversation || !contact) {
     // unknown conversation.
     // will redirect in the next didUpdate.
-    return <PanelHeader />
+    return (
+      <PanelHeader>
+        {''}
+        <TrashIcon
+          src={getStaticUrl('/icons/trash.svg')}
+          title="Delete"
+          onClick={handleDelete}
+        />
+      </PanelHeader>
+    )
   }
 
   return (
