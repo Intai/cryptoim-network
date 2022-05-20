@@ -17,6 +17,7 @@ import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
 import ConversationListStore from './conversation-list-store'
 import ActionTypes from '../actions/action-types'
+import * as ConversationAction from '../actions/conversation-action'
 
 const isAction = pathEq(
   ['action', 'type'],
@@ -27,19 +28,24 @@ const appendRequest = (
   removed,
   requests,
   conversations,
+  dispatch,
 ) => {
   const source = requests || []
 
-  // ignore the request if it has been accepted, declined or having conversation.
-  if (removed[request.uuid] || (conversations
-    && find(propEq('conversePub', request.fromPub), conversations))) {
+  // ignore the request if it has been accepted, declined.
+  if (removed[request.uuid]) {
     return source
   }
-  // ignore duplications.
-  const dup = find(propEq('fromPub', request.fromPub), source)
-  return dup
-    ? source
-    : source.concat(request)
+  // if already having conversation.
+  if (conversations && find(propEq('conversePub', request.fromPub), conversations)
+    // ignore duplications.
+    || find(propEq('fromPub', request.fromPub), source)) {
+    // don't need to ask again.
+    dispatch(ConversationAction.declineRequest(request))
+    return source
+  }
+
+  return source.concat(request)
 }
 
 const removeRequest = (request, requests) => {
@@ -81,13 +87,14 @@ const whenReceive = when(
   isAction(ActionTypes.REQUEST_APPEND),
   converge(mergeDeepRight, [
     identity,
-    ({ state, action: { message }, conversationList }) => ({
+    ({ state, action: { message }, conversationList, dispatch }) => ({
       state: {
         requests: appendRequest(
           message,
           state?.removed,
           state?.requests,
-          conversationList?.conversations
+          conversationList?.conversations,
+          dispatch,
         ),
       },
     }),
