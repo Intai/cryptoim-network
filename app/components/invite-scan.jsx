@@ -1,4 +1,3 @@
-import { find, propEq } from 'ramda'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styled from 'styled-components'
 import QrScanner from 'qr-scanner'
@@ -9,6 +8,7 @@ import Button from './button'
 import Select from './select'
 import { alertBackground, secondaryBorder } from './color'
 import { canUseDOM } from '../utils/common-util'
+import { getRequestMessage } from '../utils/login-util'
 import * as ContactAction from '../actions/contact-action'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
@@ -40,10 +40,6 @@ const ErrorMessage = styled.div`
   white-space: pre-wrap;
 `
 
-const getRequestMessage = ({ alias, name, pair: { pub } }) => (
-  `From ${name || alias || pub}`
-)
-
 const useBdux = createUseBdux({
   login: LoginStore,
   conversationList: ConversationListStore,
@@ -57,19 +53,8 @@ const InviteScan = props => {
   const qrScannerRef = useRef()
   const publicKeyRef = useRef()
   const requestMessage = useMemo(() => getRequestMessage(login), [login])
-  const { conversations, errors } = conversationList
+  const { errors } = conversationList
   const error = errors[publicKeyRef.current]
-
-  useEffect(() => {
-    if (!error) {
-      // try to find the conversation by its public key.
-      // if it's there, navigate to the conversation.
-      const conversation = find(propEq('conversePub', publicKeyRef.current), conversations)
-      if (conversation) {
-        dispatch(LocationAction.replace(`/conversation/${conversation.uuid}`))
-      }
-    }
-  })
 
   const setVideoNode = useCallback((node) => {
     if (node) {

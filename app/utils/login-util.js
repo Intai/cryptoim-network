@@ -151,3 +151,7 @@ export const leave = () => {
   // tell server to start rendering the login page.
   document.cookie = ''
 }
+
+export const getRequestMessage = ({ alias, name, pair: { pub } }) => (
+  `From ${name || alias || pub}`
+)

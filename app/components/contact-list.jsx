@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import ContactListItem from './contact-list-item'
 import { fontLarge } from './typography'
+import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
 
@@ -18,12 +19,13 @@ const Title = styled.div`
 `
 
 const useBdux = createUseBdux({
+  login: LoginStore,
   contactList: ContactListStore,
   conversationList: ConversationListStore,
 })
 
 const ContactList = props => {
-  const { state: { contactList, conversationList }, dispatch } = useBdux(props)
+  const { state: { login, contactList, conversationList }, dispatch } = useBdux(props)
   const { contacts } = contactList
   const { conversations } = conversationList
 
@@ -34,6 +36,7 @@ const ContactList = props => {
         {contacts.map(contact => (
           <ContactListItem
             key={contact.pub}
+            login={login}
             contact={contact}
             conversations={conversations}
             dispatch={dispatch}

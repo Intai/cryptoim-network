@@ -1,4 +1,5 @@
 import {
+  End,
   fromBinder,
   fromCallback,
   mergeAll,
@@ -168,29 +169,32 @@ export const sendRequest = (publicKey, text) => mergeAll(
         })
       } else {
         // create a conversation after successfully sent the request.
-        createConversation(message)
-        // indicate the success in the ui.
-        callback({
-          type: ActionTypes.CONVERSATION_SEND_REQUEST_SUCCESS,
-          publicKey,
-          message,
+        createConversation(message, conversation => {
+          // and then navigate to the conversation.
+          callback(LocationAction.push(`/conversation/${conversation.uuid}`))
         })
       }
     })
   })
 )
 
-export const acceptRequest = message => {
-  // create a conversation when accepting the request.
-  createConversation(message)
-  // mark the request as processed.
-  removeRequest(message)
-  // remove the request from request list store.
-  return {
-    type: ActionTypes.REQUEST_ACCEPT,
-    message,
-  }
-}
+export const acceptRequest = message => (
+  fromBinder(sink => {
+    // mark the request as processed.
+    removeRequest(message)
+    // create a conversation when accepting the request.
+    createConversation(message, conversation => {
+      // remove the request from request list store.
+      sink({
+        type: ActionTypes.REQUEST_ACCEPT,
+        message,
+      })
+      // and then navigate to the conversation.
+      sink(LocationAction.push(`/conversation/${conversation.uuid}`))
+      sink(new End())
+    })
+  })
+)
 
 export const declineRequest = message => {
   // mark the request as processed.
