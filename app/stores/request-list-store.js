@@ -32,10 +32,13 @@ const appendRequest = (
 ) => {
   const source = requests || []
 
-  // ignore the request if it has been accepted, declined.
-  if (removed[request.uuid]) {
+  // ignore the request if it has been accepted or declined.
+  if (removed[request.uuid]
+    // or exactly the same request by uuid.
+    || find(propEq('uuid', request.uuid), source)) {
     return source
   }
+
   // if already having conversation.
   if (conversations && find(propEq('conversePub', request.fromPub), conversations)
     // ignore duplications.
