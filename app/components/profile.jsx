@@ -127,7 +127,10 @@ const Profile = props => {
           href="/qr-code"
           onClick={handleShowQrCode}
         >
-          <KeyIcon src={getStaticUrl('/icons/key.svg')} />
+          <KeyIcon
+            src={getStaticUrl('/icons/key.svg')}
+            title="Login QR code"
+          />
         </a>
       </div>
 

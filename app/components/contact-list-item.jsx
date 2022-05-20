@@ -64,7 +64,7 @@ const ContactListItem = ({ login, contact, conversations, dispatch }) => {
       <Name onClick={handleNavigate}>{contactName}</Name>
       <TrashIcon
         src={getStaticUrl('/icons/trash.svg')}
-        title="Delete"
+        title="Delete the contact"
         onClick={handleDelete}
       />
     </ListItem>

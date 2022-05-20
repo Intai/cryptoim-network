@@ -145,7 +145,7 @@ const Conversation = (props) => {
         {''}
         <TrashIcon
           src={getStaticUrl('/icons/trash.svg')}
-          title="Delete"
+          title="Delete the conversation"
           onClick={handleDelete}
         />
       </PanelHeader>
@@ -158,7 +158,7 @@ const Conversation = (props) => {
         {getContactLabel(contact)}
         <TrashIcon
           src={getStaticUrl('/icons/trash.svg')}
-          title="Delete"
+          title="Delete the conversation"
           onClick={handleDelete}
         />
       </PanelHeader>
