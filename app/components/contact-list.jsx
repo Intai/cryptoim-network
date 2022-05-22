@@ -35,6 +35,8 @@ const ErrorMessage = styled.div`
   white-space: pre-wrap;
 `
 
+const defaultCheckedPubs = {}
+
 const useBdux = createUseBdux({
   login: LoginStore,
   contactList: ContactListStore,
@@ -42,11 +44,13 @@ const useBdux = createUseBdux({
 })
 
 const ContactList = props => {
-  const { currentContacts = {} } = props
+  const { checkedPubs: propsCheckedPubs } = props
+  const isEditingGroup = !!propsCheckedPubs
+  const checkedPubs = propsCheckedPubs || defaultCheckedPubs
   const { state: { login, contactList, conversationList }, dispatch } = useBdux(props)
   const { contacts } = contactList
   const { conversations } = conversationList
-  const [isGroupChat, setIsGroupChat] = useState(false)
+  const [isGroupChat, setIsGroupChat] = useState(isEditingGroup)
   const [error, setError] = useState(null)
 
   const handleSelectContacts = useCallback(() => {
@@ -91,21 +95,24 @@ const ContactList = props => {
           )}
 
           {isGroupChat && (
-            <>
-              <Button
-                type="submit"
-                kind="primary"
-              >
-                {'Start the group chat'}
-              </Button>
-              <Button
-                type="button"
-                kind="secondary"
-                onClick={handleCancelGroup}
-              >
-                {'Cancel'}
-              </Button>
-            </>
+            <Button
+              type="submit"
+              kind="primary"
+            >
+              {isEditingGroup
+                ? 'Update the group members'
+                : 'Start the group chat'}
+            </Button>
+          )}
+
+          {!isEditingGroup && isGroupChat && (
+            <Button
+              type="button"
+              kind="secondary"
+              onClick={handleCancelGroup}
+            >
+              {'Cancel'}
+            </Button>
           )}
         </Buttons>
 
@@ -120,7 +127,8 @@ const ContactList = props => {
               login={login}
               contact={contact}
               conversations={conversations}
-              currentContacts={currentContacts}
+              checkedPubs={checkedPubs}
+              isEditingGroup={isEditingGroup}
               isGroupChat={isGroupChat}
               dispatch={dispatch}
             />

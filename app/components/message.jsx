@@ -58,7 +58,7 @@ const Message = ({ login, contact, message, prev }) => {
   const isMine = fromPub === loginPub
   const isSameContact = prev?.fromPub === fromPub
 
-  if (content.type === 'request') {
+  if (typeof content !== 'string') {
     return false
   }
   return (

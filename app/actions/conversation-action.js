@@ -25,6 +25,7 @@ import {
   getMyMessage,
   sendMessageToUser,
   sendNextMessage,
+  updateConversationName,
   updateConversationLastTimestamp,
   expireConversationMessage,
 } from '../utils/conversation-util'
@@ -58,6 +59,14 @@ export const init = () => mergeAll(
         type: ActionTypes.MESSAGE_APPEND,
         message,
       })
+
+      const { type } = message.content
+      if (type === 'updateGroup') {
+        sink({
+          type: ActionTypes.GROUP_UPDATE,
+          message,
+        })
+      }
     })
   )),
 
@@ -68,7 +77,8 @@ export const init = () => mergeAll(
         message,
       })
 
-      if (message.content.type === 'request') {
+      const { type } = message.content
+      if (type === 'request') {
         sink({
           type: ActionTypes.REQUEST_APPEND,
           message,
@@ -284,6 +294,29 @@ export const sendGroupRequests = (userPubs, loginPub, text) => mergeAll(
       }
     })
 )
+
+export const updateGroupName = (conversation, name) => {
+  // update the group conversation's name.
+  if (conversation.memberPubs) {
+    updateConversationName(conversation.uuid, name)
+  }
+}
+
+export const applyGroupUpdate = (conversation, message) => {
+  const { content: { name } } = message
+  // mark the group update as processed.
+  removeRequest(message)
+  // and then update the group.
+  updateGroupName(conversation, name)
+}
+
+export const sendGroupUpdate = (nextPair, conversePub, update) => {
+  // send group update inside the conversation.
+  sendNextMessage(nextPair, conversePub, {
+    type: 'updateGroup',
+    ...update,
+  })
+}
 
 export const clearError = userPub => ({
   type: ActionTypes.CONVERSATION_CLEAR_REQUEST_ERROR,

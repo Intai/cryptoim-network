@@ -107,13 +107,14 @@ const Conversation = (props) => {
   const { converseUuid } = useParams()
   const { state: { login, contactList, conversationList, messageList }, dispatch } = useBdux(props)
   const { contacts } = contactList
+  const { conversations } = conversationList
   const { messages } = messageList
   const scrollbarRef = useRef()
 
   // find the conversation by uuid in url.
   const conversation = useMemo(() => (
-    find(propEq('uuid', converseUuid), conversationList.conversations)
-  ), [conversationList.conversations, converseUuid])
+    find(propEq('uuid', converseUuid), conversations)
+  ), [conversations, converseUuid])
 
   // find the other user in the conversation.
   const conversePub = conversation?.conversePub
@@ -135,7 +136,7 @@ const Conversation = (props) => {
     }
   }, [converseUuid, dispatch, isGroupChat])
 
-  // delete the conversation and then navigate back to the list.
+  // delete the conversation and then navigate back to the conversation list.
   const handleDelete = useCallback(() => {
     dispatch(ConversationAction.remove(conversation))
     dispatch(LocationAction.replace('/conversations'))
@@ -165,7 +166,6 @@ const Conversation = (props) => {
 
   if (!conversation) {
     // unknown conversation.
-    // will redirect in the next didUpdate.
     return (
       <PanelHeader>
         {''}

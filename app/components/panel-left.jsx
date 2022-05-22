@@ -39,6 +39,10 @@ const PanelLeft = props => {
           path="/conversation/:converseUuid"
         />
         <Route
+          element={<PanelLeftLayout isMdAndUpOnly />}
+          path="/group/:converseUuid"
+        />
+        <Route
           // don't render the left panel on sm and md screens.
           // the only exception is /conversations.
           element={<PanelLeftLayout isMdAndUpOnly />}

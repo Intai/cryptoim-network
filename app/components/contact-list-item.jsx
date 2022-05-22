@@ -48,7 +48,8 @@ const ContactListItem = ({
   login,
   contact,
   conversations,
-  currentContacts,
+  checkedPubs,
+  isEditingGroup,
   isGroupChat,
   dispatch,
 }) => {
@@ -87,16 +88,18 @@ const ContactListItem = ({
           ref={checkboxRef}
           name={pub}
           value={contactName}
-          checked={!!currentContacts[pub]}
+          checked={!!checkedPubs[pub]}
         />
       )}
 
       <Name onClick={handleNavigate}>{contactName}</Name>
-      <TrashIcon
-        src={getStaticUrl('/icons/trash.svg')}
-        title="Delete the contact"
-        onClick={handleDelete}
-      />
+      {!isEditingGroup && (
+        <TrashIcon
+          src={getStaticUrl('/icons/trash.svg')}
+          title="Delete the contact"
+          onClick={handleDelete}
+        />
+      )}
     </ListItem>
   )
 }

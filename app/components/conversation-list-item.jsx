@@ -40,10 +40,12 @@ const GroupIcon = styled.img`
 `
 
 const isNewMessageInConversation = (conversePub, lastTimestamp) => message => {
-  const { conversePub: messageConversePub, fromPub, timestamp } = message
+  const { content, conversePub: messageConversePub, fromPub, timestamp } = message
 
-  // if the message is newer.
-  return (!lastTimestamp || timestamp > lastTimestamp)
+  // count only text messages.
+  return typeof content === 'string'
+    // if the message is newer.
+    && (!lastTimestamp || timestamp > lastTimestamp)
     // message from myself in the conversation.
     && (conversePub === messageConversePub
       // or from the other user.

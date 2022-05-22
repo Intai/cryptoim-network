@@ -6,4 +6,5 @@ export default Common.createObjOfConsts([
   'REQUEST_LIST',
   'CONVERSATION_LIST',
   'MESSAGE_LIST',
+  'REMOVED_LIST',
 ])

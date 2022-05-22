@@ -11,6 +11,7 @@ import {
 import Home from './home'
 import QrCode from './qr-code'
 import Conversation from './conversation'
+import Group from './group'
 import Invite from './invite'
 import InviteScan from './invite-scan'
 import InviteResult from './invite-result'
@@ -86,6 +87,10 @@ const PanelRight = props => {
           <Route
             element={<Conversation />}
             path="conversation/:converseUuid"
+          />
+          <Route
+            element={<Group />}
+            path="group/:converseUuid"
           />
           <Route
             element={<Home />}

@@ -1,5 +1,4 @@
 import {
-  assoc,
   converge,
   either,
   find,
@@ -16,6 +15,7 @@ import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
 import ConversationListStore from './conversation-list-store'
+import RemovedListStore from './removed-list-store'
 import ActionTypes from '../actions/action-types'
 import * as ConversationAction from '../actions/conversation-action'
 
@@ -33,7 +33,7 @@ const appendRequest = (
   const source = requests || []
 
   // ignore the request if it has been accepted or declined.
-  if (removed[request.uuid]
+  if ((removed && removed[request.uuid])
     // or exactly the same request by uuid.
     || find(propEq('uuid', request.uuid), source)) {
     return source
@@ -67,20 +67,7 @@ const whenInit = when(
     identity,
     ({ state }) => ({
       state: {
-        removed: state?.removed || {},
         requests: state?.requests || [],
-      },
-    }),
-  ])
-)
-
-const whenRemoved = when(
-  isAction(ActionTypes.REQUEST_REMOVED),
-  converge(mergeDeepRight, [
-    identity,
-    ({ state, action: { uuid } }) => ({
-      state: {
-        removed: assoc(uuid, true, state?.removed || {}),
       },
     }),
   ])
@@ -90,11 +77,11 @@ const whenReceive = when(
   isAction(ActionTypes.REQUEST_APPEND),
   converge(mergeDeepRight, [
     identity,
-    ({ state, action: { message }, conversationList, dispatch }) => ({
+    ({ state, action: { message }, conversationList, removedList, dispatch }) => ({
       state: {
         requests: appendRequest(
           message,
-          state?.removed,
+          removedList?.removed,
           state?.requests,
           conversationList?.conversations,
           dispatch,
@@ -125,7 +112,6 @@ export const getReducer = () => {
     input: reducerStream,
     output: reducerStream
       .map(whenInit)
-      .map(whenRemoved)
       .map(whenReceive)
       .map(whenAcceptDecline)
       .map(prop('state')),
@@ -135,5 +121,6 @@ export const getReducer = () => {
 export default createStore(
   StoreNames.REQUEST_LIST, getReducer, {
     conversationList: ConversationListStore,
+    removedList: RemovedListStore,
   }
 )

@@ -16,6 +16,7 @@ import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
 import ContactListStore from './contact-list-store'
+import RemovedListStore from './removed-list-store'
 import ActionTypes from '../actions/action-types'
 import * as ConversationAction from '../actions/conversation-action'
 
@@ -133,6 +134,24 @@ const whenAppendMessage = when(
   }
 )
 
+const whenUpdateGroup = when(
+  isAction(ActionTypes.GROUP_UPDATE),
+  args => {
+    const { state, action: { message }, removedList, dispatch } = args
+
+    if (!removedList?.removed[message.uuid]) {
+      // find the conversation by conversePub.
+      const conversation = find(isMessageInConversation(message), state.conversations)
+      if (conversation) {
+        // update the group name in gun user space.
+        dispatch(ConversationAction.applyGroupUpdate(conversation, message))
+      }
+    }
+
+    return args
+  }
+)
+
 const whenRemove = when(
   isAction(ActionTypes.CONVERSATION_DELETE),
   converge(mergeDeepRight, [
@@ -216,6 +235,7 @@ export const getReducer = () => {
       .map(whenSendRequestError)
       .map(whenSendGroupRequests)
       .map(whenClearRequestError)
+      .map(whenUpdateGroup)
       .map(prop('state')),
   }
 }
@@ -223,5 +243,6 @@ export const getReducer = () => {
 export default createStore(
   StoreNames.CONVERSATION_LIST, getReducer, {
     contactList: ContactListStore,
+    removedList: RemovedListStore,
   }
 )

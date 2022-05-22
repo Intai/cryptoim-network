@@ -263,6 +263,28 @@ export const getConversationMessage = cb => {
     : F
 }
 
+export const updateConversationName = (converseUuid, name) => {
+  const converseNode = getAuthUser()
+    .get('conversations')
+    .get(`conversation-${converseUuid}`)
+
+  converseNode.on(gunOnce(T, encrypted => {
+    if (encrypted) {
+      Sea.decrypt(encrypted, getAuthPair()).then(data => {
+        const conversation = {
+          ...data,
+          name,
+        }
+
+        // update the pair to the first message in the conversation.
+        Sea.encrypt(conversation, getAuthPair()).then(encrypted => {
+          converseNode.put(encrypted)
+        })
+      })
+    }
+  }))
+}
+
 export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => {
   const converseNode = getAuthUser()
     .get('conversations')
@@ -312,15 +334,11 @@ export const expireConversationMessage = (converseUuid, message) => {
   }))
 }
 
-export const getGroupName = (login, contacts, conversation) => {
-  const { name, memberPubs } = conversation
-  if (name) {
-    // if the conversation has a name.
-    return name
-  }
+export const getGroupDefaultName = (login, contacts, conversation) => {
+  const { memberPubs } = conversation
 
-  // otherwise return members' names separated by comma.
-  const labels = memberPubs.reduce((accum, memberPub) => {
+  // group members' names separated by comma.
+  const labels = memberPubs?.reduce((accum, memberPub) => {
     const contact = (login.pair.pub !== memberPub)
       ? find(propEq('pub', memberPub), contacts)
       : login
@@ -333,7 +351,17 @@ export const getGroupName = (login, contacts, conversation) => {
       }
     }
     return accum
-  }, [])
+  }, []) || []
 
   return labels.join(', ')
+}
+
+export const getGroupName = (login, contacts, conversation) => {
+  const { name } = conversation
+  if (name) {
+    // if the conversation has a name.
+    return name
+  }
+  // otherwise return members' names separated by comma.
+  return getGroupDefaultName(login, contacts, conversation)
 }
