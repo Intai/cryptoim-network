@@ -149,11 +149,26 @@ const whenSendRequest = when(
   isAction(ActionTypes.CONVERSATION_SEND_REQUEST),
   converge(mergeDeepRight, [
     identity,
-    ({ action: { publicKey } }) => ({
+    ({ action: { userPub } }) => ({
       state: {
         errors: {
-          [publicKey]: null,
+          [userPub]: null,
         },
+      },
+    }),
+  ])
+)
+
+const whenSendGroupRequests = when(
+  isAction(ActionTypes.CONVERSATION_SEND_GROUP_REQUESTS),
+  converge(mergeDeepRight, [
+    identity,
+    ({ action: { userPubs } }) => ({
+      state: {
+        errors: userPubs.reduce((accum, userPub) => {
+          accum[userPub] = null
+          return accum
+        }, {}),
       },
     }),
   ])
@@ -163,10 +178,10 @@ const whenSendRequestError = when(
   isAction(ActionTypes.CONVERSATION_SEND_REQUEST_ERROR),
   converge(mergeDeepRight, [
     identity,
-    ({ action: { publicKey, err } }) => ({
+    ({ action: { userPub, err } }) => ({
       state: {
         errors: {
-          [publicKey]: err,
+          [userPub]: err,
         },
       },
     }),
@@ -177,10 +192,10 @@ const whenClearRequestError = when(
   isAction(ActionTypes.CONVERSATION_CLEAR_REQUEST_ERROR),
   converge(mergeDeepRight, [
     identity,
-    ({ action: { publicKey } }) => ({
+    ({ action: { userPub } }) => ({
       state: {
         errors: {
-          [publicKey]: null,
+          [userPub]: null,
         },
       },
     }),
@@ -199,6 +214,7 @@ export const getReducer = () => {
       .map(whenRemove)
       .map(whenSendRequest)
       .map(whenSendRequestError)
+      .map(whenSendGroupRequests)
       .map(whenClearRequestError)
       .map(prop('state')),
   }

@@ -69,8 +69,8 @@ const whenAppend = when(
   ])
 )
 
-const whenInviteError = when(
-  isAction(ActionTypes.CONTACT_INVITE_ERROR),
+const whenAppendError = when(
+  isAction(ActionTypes.CONTACT_APPEND_ERROR),
   converge(mergeDeepRight, [
     identity,
     ({ action: { err } }) => ({
@@ -94,8 +94,8 @@ const whenDelete = when(
   ])
 )
 
-const whenClearInviteError = when(
-  isAction(ActionTypes.CONTACT_CLEAR_INVITE_ERROR),
+const whenClearAppendError = when(
+  isAction(ActionTypes.CONTACT_CLEAR_APPEND_ERROR),
   converge(mergeDeepRight, [
     identity,
     () => ({
@@ -113,8 +113,8 @@ export const getReducer = () => {
     output: reducerStream
       .map(whenInit)
       .map(whenAppend)
-      .map(whenInviteError)
-      .map(whenClearInviteError)
+      .map(whenAppendError)
+      .map(whenClearAppendError)
       .map(whenDelete)
       .map(prop('state')),
   }

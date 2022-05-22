@@ -101,7 +101,7 @@ const Login = (props) => {
   const [isScanning, setIsScanning] = useState(false)
   const hasRadata = login?.hasRadata
 
-  const handleLogin = useCallback((e) => {
+  const handleLogin = useCallback(e => {
     const formData = new FormData(e.target)
     const alias = formData.get('alias')
     const password = formData.get('password')

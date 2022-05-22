@@ -68,7 +68,7 @@ const whenInit = when(
     ({ state }) => ({
       state: {
         removed: state?.removed || {},
-        requests: state?.conversations || [],
+        requests: state?.requests || [],
       },
     }),
   ])

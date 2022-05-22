@@ -1,8 +1,12 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
+import Button from './button'
 import ContactListItem from './contact-list-item'
+import { alertBackground } from './color'
 import { fontLarge } from './typography'
+import { getGroupRequestMessage } from '../utils/login-util'
+import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
@@ -18,6 +22,19 @@ const Title = styled.div`
   margin: 15px 20px;
 `
 
+const Buttons = styled.div`
+  margin-left: 20px;
+`
+
+const ErrorMessage = styled.div`
+  ${alertBackground}
+  display: block;
+  padding: 10px;
+  margin: 0 20xp 15px 20px;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+`
+
 const useBdux = createUseBdux({
   login: LoginStore,
   contactList: ContactListStore,
@@ -25,24 +42,91 @@ const useBdux = createUseBdux({
 })
 
 const ContactList = props => {
+  const { currentContacts = {} } = props
   const { state: { login, contactList, conversationList }, dispatch } = useBdux(props)
   const { contacts } = contactList
   const { conversations } = conversationList
+  const [isGroupChat, setIsGroupChat] = useState(false)
+  const [error, setError] = useState(null)
+
+  const handleSelectContacts = useCallback(() => {
+    setIsGroupChat(true)
+  }, [])
+
+  const handleCancelGroup = useCallback(() => {
+    setIsGroupChat(false)
+  }, [])
+
+  const handleStartGroup = useCallback(e => {
+    const formData = new FormData(e.target)
+    const publicKeys = Array.from(formData.keys())
+    const names = Array.from(formData.values())
+
+    if (publicKeys.length > 0) {
+      dispatch(ConversationAction.sendGroupRequests(
+        publicKeys,
+        login.pair.pub,
+        getGroupRequestMessage(login, names))
+      )
+      setError(null)
+    } else {
+      setError('Please select at least one contact.')
+    }
+    e.preventDefault()
+  }, [dispatch, login])
 
   return contacts.length > 0 && (
     <Container>
       <Title>Contacts</Title>
-      <ul>
-        {contacts.map(contact => (
-          <ContactListItem
-            key={contact.pub}
-            login={login}
-            contact={contact}
-            conversations={conversations}
-            dispatch={dispatch}
-          />
-        ))}
-      </ul>
+      <form onSubmit={handleStartGroup}>
+        <Buttons>
+          {!isGroupChat && (
+            <Button
+              type="button"
+              kind="secondary"
+              onClick={handleSelectContacts}
+            >
+              {'Select contacts for a group chat'}
+            </Button>
+          )}
+
+          {isGroupChat && (
+            <>
+              <Button
+                type="submit"
+                kind="primary"
+              >
+                {'Start the group chat'}
+              </Button>
+              <Button
+                type="button"
+                kind="secondary"
+                onClick={handleCancelGroup}
+              >
+                {'Cancel'}
+              </Button>
+            </>
+          )}
+        </Buttons>
+
+        {error && (
+          <ErrorMessage>⚠️  {error}</ErrorMessage>
+        )}
+
+        <ul>
+          {contacts.map(contact => (
+            <ContactListItem
+              key={contact.pub}
+              login={login}
+              contact={contact}
+              conversations={conversations}
+              currentContacts={currentContacts}
+              isGroupChat={isGroupChat}
+              dispatch={dispatch}
+            />
+          ))}
+        </ul>
+      </form>
     </Container>
   )
 }

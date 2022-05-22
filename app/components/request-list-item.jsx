@@ -15,6 +15,7 @@ const AcceptButton = styled.div`
 const AcceptWrap = styled.div`
   flex: 1;
   display: flex;
+  overflow: hidden;
 
   &:hover {
     ${primaryBackground}
@@ -54,15 +55,29 @@ const Message = styled.div`
   box-sizing: border-box;
 `
 
-const RequestListItem = ({ request, dispatch }) => {
-  const { fromPub, content: { text } } = request
+const RequestListItem = ({ login, request, dispatch }) => {
+  const loginPub = login.pair.pub
+  const { fromPub, content: { text, memberPubs } } = request
 
   const handleAccept = useCallback(() => {
-    dispatch(ContactAction.invite(fromPub))
+    // if it's a group chat.
+    if (memberPubs && memberPubs.length > 0) {
+      // add all members to the contact list.
+      memberPubs.forEach(memberPub => {
+        if (loginPub !== memberPub) {
+          dispatch(ContactAction.append(memberPub))
+        }
+      })
+    } else {
+      // add the request sender to the contact list.
+      dispatch(ContactAction.append(fromPub))
+    }
+    // accept and create a conversation.
     dispatch(ConversationAction.acceptRequest(request))
-  }, [dispatch, fromPub, request])
+  }, [dispatch, fromPub, loginPub, memberPubs, request])
 
   const handleDecline = useCallback(() => {
+    // decline the request. do not create a conversation.
     dispatch(ConversationAction.declineRequest(request))
   }, [dispatch, request])
 

@@ -38,7 +38,7 @@ const InviteResult = props => {
 
   useEffect(() => {
     if (publicKey) {
-      dispatch(ContactAction.invite(publicKey))
+      dispatch(ContactAction.append(publicKey))
       dispatch(ConversationAction.sendRequest(publicKey, getRequestMessage(login)))
     }
   // didMount

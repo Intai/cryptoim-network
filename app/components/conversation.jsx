@@ -9,6 +9,8 @@ import Message from './message'
 import MessageInput from './message-input'
 import { scrollbar } from './scrollbar'
 import { getStaticUrl } from '../utils/common-util'
+import { getContactName } from '../utils/contact-util'
+import { getGroupName } from '../utils/conversation-util'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
@@ -46,21 +48,14 @@ const sortByTimestamp = sortBy(prop('timestamp'))
 
 const filterSortMessages = (loginPub, conversePub) => pipe(
   filter(({ conversePub: messageConversePub, fromPub }) => (
-    // message from myself in the conversation.
-    (loginPub === fromPub && conversePub === messageConversePub)
+    // message from myself in the conversation,
+    // or messages in a group chat.
+    (conversePub === messageConversePub)
       // or from the other user.
       || (loginPub === messageConversePub && conversePub === fromPub)
   )),
   sortByTimestamp
 )
-
-const getContactLabel = contact => {
-  if (contact) {
-    const { alias, name, pub } = contact
-    return name || alias || pub
-  }
-  return null
-}
 
 const renderMessages = (render, messages) => reduce(
   ({ elements, prev }, message) => {
@@ -89,6 +84,7 @@ const useBdux = createUseBdux({
 const Conversation = (props) => {
   const { converseUuid } = useParams()
   const { state: { login, contactList, conversationList, messageList }, dispatch } = useBdux(props)
+  const { contacts } = contactList
   const { messages } = messageList
   const scrollbarRef = useRef()
 
@@ -100,8 +96,8 @@ const Conversation = (props) => {
   // find the other user in the conversation.
   const conversePub = conversation?.conversePub
   const contact = useMemo(() => (
-    find(propEq('pub', conversePub), contactList.contacts)
-  ), [contactList.contacts, conversePub])
+    find(propEq('pub', conversePub), contacts)
+  ), [contacts, conversePub])
 
   // filter and sort the messages in the conversation.
   const { pair: { pub: loginPub } } = login
@@ -137,7 +133,7 @@ const Conversation = (props) => {
   // or when there are new messages.
   }, [converseUuid, filteredMessages.length])
 
-  if (!conversation || !contact) {
+  if (!conversation) {
     // unknown conversation.
     // will redirect in the next didUpdate.
     return (
@@ -155,7 +151,9 @@ const Conversation = (props) => {
   return (
     <>
       <PanelHeader>
-        {getContactLabel(contact)}
+        {getContactName(contact)
+          || getGroupName(login, contacts, conversation)
+          || conversePub}
         <TrashIcon
           src={getStaticUrl('/icons/trash.svg')}
           title="Delete the conversation"

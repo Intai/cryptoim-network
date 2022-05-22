@@ -3,6 +3,9 @@ import React, { useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 import { LocationAction } from 'bdux-react-router'
 import { primaryBackground, secondaryText } from './color'
+import { getStaticUrl } from '../utils/common-util'
+import { getContactName } from '../utils/contact-util'
+import { getGroupName } from '../utils/conversation-util'
 
 const ListItem = styled.li`
   display: block;
@@ -30,6 +33,12 @@ const Count = styled.div`
   padding-left: 10px;
 `
 
+const GroupIcon = styled.img`
+  flex: 0 0 auto;
+  height: 14px;
+  padding: 0 10px 0 0;
+`
+
 const isNewMessageInConversation = (conversePub, lastTimestamp) => message => {
   const { conversePub: messageConversePub, fromPub, timestamp } = message
 
@@ -41,17 +50,12 @@ const isNewMessageInConversation = (conversePub, lastTimestamp) => message => {
       || conversePub === fromPub)
 }
 
-const getContactLabel = contact => {
-  if (contact) {
-    const { alias, name, pub } = contact
-    return name || alias || pub
-  }
-  return null
-}
-
-const ConversationListItem = ({ contacts, conversation, messages, isSelected, dispatch }) => {
-  const { uuid, conversePub, lastTimestamp } = conversation
+const ConversationListItem = ({ login, contacts, conversation, messages, isSelected, dispatch }) => {
+  const { uuid, conversePub, memberPubs, lastTimestamp } = conversation
   const contact = find(propEq('pub', conversePub), contacts)
+  const label = getContactName(contact)
+    || getGroupName(login, contacts, conversation)
+    || conversePub
 
   const handleSelect = useCallback(() => {
     dispatch(LocationAction.push(`/conversation/${uuid}`))
@@ -66,7 +70,13 @@ const ConversationListItem = ({ contacts, conversation, messages, isSelected, di
       isSelected={isSelected}
       onClick={handleSelect}
     >
-      <Label>{getContactLabel(contact) || conversePub}</Label>
+      {memberPubs && (
+        <GroupIcon
+          src={getStaticUrl('/icons/user-group.svg')}
+          alt="Group"
+        />
+      )}
+      <Label>{label}</Label>
       {!!newCount && <Count>{newCount} new</Count>}
     </ListItem>
   )

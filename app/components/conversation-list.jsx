@@ -5,6 +5,7 @@ import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import ConversationListItem from './conversation-list-item'
 import { fontLarge } from './typography'
+import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
 import MessageListStore from '../stores/message-list-store'
@@ -19,6 +20,7 @@ const compareConversations = (a, b) => (
 )
 
 const useBdux = createUseBdux({
+  login: LoginStore,
   contactList: ContactListStore,
   conversationList: ConversationListStore,
   messageList: MessageListStore,
@@ -26,7 +28,7 @@ const useBdux = createUseBdux({
 
 const ConversationList = (props) => {
   const { converseUuid } = useParams()
-  const { state: { contactList, conversationList, messageList }, dispatch } = useBdux(props)
+  const { state: { login, contactList, conversationList, messageList }, dispatch } = useBdux(props)
   const { contacts } = contactList
   const { conversations } = conversationList
   const { messages } = messageList
@@ -42,6 +44,7 @@ const ConversationList = (props) => {
         {sortedConversations.map(conversation => (
           <ConversationListItem
             key={conversation.conversePub}
+            login={login}
             contacts={contacts}
             conversation={conversation}
             messages={messages}

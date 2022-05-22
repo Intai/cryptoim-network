@@ -1,7 +1,8 @@
 import { find, propEq } from 'ramda'
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import styled from 'styled-components'
 import { LocationAction } from 'bdux-react-router'
+import Checkbox from './checkbox'
 import { secondaryBackground } from './color'
 import { getStaticUrl } from '../utils/common-util'
 import { getRequestMessage } from '../utils/login-util'
@@ -18,11 +19,18 @@ const ListItem = styled.li`
   }
 `
 
+const ContactCheckbox = styled(Checkbox)`
+  flex: 0 0 auto;
+  margin: -1px 0 -2px 0;
+`
+
 const Name = styled.div`
   flex: 1;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  padding: 15px 0 15px 10px;
+  margin: -15px 0;
 `
 
 const TrashIcon = styled.img`
@@ -36,21 +44,34 @@ const TrashIcon = styled.img`
   }
 `
 
-const ContactListItem = ({ login, contact, conversations, dispatch }) => {
+const ContactListItem = ({
+  login,
+  contact,
+  conversations,
+  currentContacts,
+  isGroupChat,
+  dispatch,
+}) => {
   const { alias, name, pub } = contact
   const contactName = name || alias || pub
+  const checkboxRef = useRef()
 
   const conversation = useMemo(() => (
     find(propEq('conversePub', pub), conversations)
   ), [conversations, pub])
 
   const handleNavigate = useCallback(() => {
-    if (conversation) {
+    if (isGroupChat) {
+      const { current: checkbox } = checkboxRef
+      if (checkbox) {
+        checkbox.click()
+      }
+    } else if (conversation) {
       dispatch(LocationAction.push(`/conversation/${conversation.uuid}`))
     } else {
       dispatch(ConversationAction.sendRequest(pub, getRequestMessage(login)))
     }
-  }, [conversation, dispatch, login, pub])
+  }, [conversation, dispatch, isGroupChat, login, pub])
 
   const handleDelete = useCallback(() => {
     dispatch(ContactAction.remove(contact))
@@ -61,6 +82,15 @@ const ContactListItem = ({ login, contact, conversations, dispatch }) => {
 
   return (
     <ListItem>
+      {isGroupChat && (
+        <ContactCheckbox
+          ref={checkboxRef}
+          name={pub}
+          value={contactName}
+          checked={!!currentContacts[pub]}
+        />
+      )}
+
       <Name onClick={handleNavigate}>{contactName}</Name>
       <TrashIcon
         src={getStaticUrl('/icons/trash.svg')}

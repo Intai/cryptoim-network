@@ -21,13 +21,13 @@ export const init = () => mergeAll(
   ))
 )
 
-export const invite = pubicKey => fromCallback(callback => {
+export const append = pubicKey => fromCallback(callback => {
   setContact(pubicKey, contact => {
     const { err } = contact
 
     if (err) {
       callback({
-        type: ActionTypes.CONTACT_INVITE_ERROR,
+        type: ActionTypes.CONTACT_APPEND_ERROR,
         pub: pubicKey,
         err,
       })
@@ -49,5 +49,5 @@ export const remove = contact => {
 }
 
 export const clearError = () => ({
-  type: ActionTypes.CONTACT_CLEAR_INVITE_ERROR,
+  type: ActionTypes.CONTACT_CLEAR_APPEND_ERROR,
 })

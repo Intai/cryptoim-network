@@ -1,4 +1,4 @@
-import { F, memoizeWith, pipe, prop, T } from 'ramda'
+import { F, find, memoizeWith, pipe, prop, propEq, T } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import { jsonParse } from './common-util'
 import { Sea, getGun, gunOnce } from './gun-util'
@@ -59,18 +59,12 @@ export const getMyMessage = cb => (
 )
 
 const encryptMessage = async (user, fromPair, conversePub, content) => {
-  let nextPair
-  if (content.type === 'request') {
-    // sharing the next pair in a group chat.
-    nextPair = content.nextPair
-  }
-
   const message = {
     uuid: uuidv4(),
     content,
     conversePub,
     fromPub: getAuthPair().pub,
-    nextPair: nextPair || await Sea.pair(),
+    nextPair: content.nextPair || await Sea.pair(),
     timestamp: Date.now(),
   }
   const passphrase = await Sea.secret(user.epub, fromPair)
@@ -147,13 +141,15 @@ export const sendMessageToUser = (toPub, conversePub, content, cb) => {
 const uuidCache = {}
 
 export const createConversation = (message, cb) => {
-  const { conversePub, fromPub, nextPair, timestamp } = message
+  const { content, conversePub, fromPub, nextPair, timestamp } = message
+  const { memberPubs = null } = content
   const targetPub = (conversePub !== getAuthPair().pub) ? conversePub : fromPub
   const uuid = uuidCache[targetPub] || uuidv4()
   uuidCache[targetPub] = uuid
   const conversation = {
     uuid,
     conversePub: targetPub,
+    memberPubs,
     nextPair,
     lastTimestamp: timestamp,
   }
@@ -226,13 +222,11 @@ export const getRemovedRequest = cb => {
 }
 
 export const removeRequest = message => {
-  if (message.content.type === 'request') {
-    const { uuid } = message
-    getAuthUser()
-      .get('requests')
-      .get(`request-${uuid}`)
-      .put(uuid)
-  }
+  const { uuid } = message
+  getAuthUser()
+    .get('requests')
+    .get(`request-${uuid}`)
+    .put(uuid)
 }
 
 const pushUnsub = (unsub, unsubs) => {
@@ -316,4 +310,30 @@ export const expireConversationMessage = (converseUuid, message) => {
       })
     }
   }))
+}
+
+export const getGroupName = (login, contacts, conversation) => {
+  const { name, memberPubs } = conversation
+  if (name) {
+    // if the conversation has a name.
+    return name
+  }
+
+  // otherwise return members' names separated by comma.
+  const labels = memberPubs.reduce((accum, memberPub) => {
+    const contact = (login.pair.pub !== memberPub)
+      ? find(propEq('pub', memberPub), contacts)
+      : login
+
+    if (contact) {
+      const { alias, name } = contact
+      const label = name || alias
+      if (label) {
+        accum.push(label)
+      }
+    }
+    return accum
+  }, [])
+
+  return labels.join(', ')
 }

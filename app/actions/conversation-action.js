@@ -1,13 +1,20 @@
+import { filter, find, prop, propEq } from 'ramda'
 import {
+  combineAsArray,
+  combineTemplate,
   End,
+  fromArray,
   fromBinder,
   fromCallback,
+  fromPromise,
   mergeAll,
+  never,
   once,
 } from 'baconjs'
 import { LocationAction } from 'bdux-react-router'
 import ActionTypes from './action-types'
 import { canUseDOM, getStaticUrl } from '../utils/common-util'
+import { Sea } from '../utils/gun-util'
 import {
   getConversation,
   createConversation,
@@ -149,10 +156,10 @@ export const notifyNewMessage = (contact, conversation, message) => (
     })
 )
 
-export const sendRequest = (publicKey, text) => mergeAll(
+export const sendRequest = (userPub, text) => mergeAll(
   once({
     type: ActionTypes.CONVERSATION_SEND_REQUEST,
-    publicKey,
+    userPub,
   }),
 
   fromCallback(callback => {
@@ -160,11 +167,11 @@ export const sendRequest = (publicKey, text) => mergeAll(
       type: 'request',
       text,
     }
-    sendMessageToUser(publicKey, publicKey, content, ({ message, err }) => {
+    sendMessageToUser(userPub, userPub, content, ({ message, err }) => {
       if (err) {
         callback({
           type: ActionTypes.CONVERSATION_SEND_REQUEST_ERROR,
-          publicKey,
+          userPub,
           err,
         })
       } else {
@@ -206,7 +213,79 @@ export const declineRequest = message => {
   }
 }
 
-export const clearError = publicKey => ({
+const filterRequestError = filter(
+  propEq('type', ActionTypes.CONVERSATION_SEND_REQUEST_ERROR)
+)
+
+const findRequestSuccess = find(
+  propEq('type', ActionTypes.CONVERSATION_SEND_REQUEST_SUCCESS)
+)
+
+export const sendGroupRequests = (userPubs, loginPub, text) => mergeAll(
+  once({
+    type: ActionTypes.CONVERSATION_SEND_GROUP_REQUESTS,
+    userPubs,
+  }),
+
+  combineTemplate({
+    // generate pairs for the group conversation.
+    nextPair: fromPromise(Sea.pair()),
+    conversePub: fromPromise(Sea.pair()).map(prop('pub')),
+  })
+    .flatMap(({ nextPair, conversePub }) => (
+      // combine to wait for all group requests to finish.
+      combineAsArray(userPubs.map(userPub => (
+        fromCallback(callback => {
+          const content = {
+            type: 'request',
+            memberPubs: [loginPub].concat(userPubs),
+            nextPair,
+            text,
+          }
+          // send group request one by one.
+          sendMessageToUser(userPub, conversePub, content, ({ message, err }) => {
+            if (err) {
+              callback({
+                type: ActionTypes.CONVERSATION_SEND_REQUEST_ERROR,
+                userPub,
+                err,
+              })
+            } else {
+              callback({
+                type: ActionTypes.CONVERSATION_SEND_REQUEST_SUCCESS,
+                message,
+              })
+            }
+          })
+        })
+      )))
+    ))
+    .flatMap(actions => {
+      const errorActions = filterRequestError(actions)
+      const successAction = findRequestSuccess(actions)
+
+      // pass on error actions.
+      const errorStream = errorActions.legnth > 0 && fromArray(errorActions)
+      // if there is at least one group request was successful.
+      const successStream = successAction && fromCallback(callback => {
+        // create a conversation after successfully sent at least one request.
+        createConversation(successAction.message, conversation => {
+          // and then navigate to the conversation.
+          callback(LocationAction.push(`/conversation/${conversation.uuid}`))
+        })
+      })
+
+      if (successStream) {
+        return !errorStream
+          ? successStream
+          : errorStream.merge(successStream)
+      } else {
+        return errorStream || never()
+      }
+    })
+)
+
+export const clearError = userPub => ({
   type: ActionTypes.CONVERSATION_CLEAR_REQUEST_ERROR,
-  publicKey,
+  userPub,
 })

@@ -155,3 +155,9 @@ export const leave = () => {
 export const getRequestMessage = ({ alias, name, pair: { pub } }) => (
   `From ${name || alias || pub}`
 )
+
+export const getGroupRequestMessage = ({ alias, name, pair: { pub } }, names) => {
+  const loginName = name || alias || pub
+  const memberNames = [loginName, ...names]
+  return `Group chat ${memberNames.join(', ')}`
+}

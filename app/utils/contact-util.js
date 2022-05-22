@@ -124,3 +124,11 @@ export const removeContact = contact => {
     .get(`contact-${contact.uuid}`)
     .put(null)
 }
+
+export const getContactName = contact => {
+  if (contact) {
+    const { alias, name, pub } = contact
+    return name || alias || pub
+  }
+  return null
+}

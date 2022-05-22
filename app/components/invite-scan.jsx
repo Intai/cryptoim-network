@@ -62,7 +62,7 @@ const InviteScan = props => {
         const publicKey = result.data
         if (publicKey && publicKeyRef.current !== publicKey) {
           publicKeyRef.current = publicKey
-          dispatch(ContactAction.invite(publicKey))
+          dispatch(ContactAction.append(publicKey))
           dispatch(ConversationAction.sendRequest(publicKey, requestMessage))
         }
       }, {
