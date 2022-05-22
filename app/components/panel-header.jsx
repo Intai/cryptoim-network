@@ -16,9 +16,15 @@ const BackAnchor = styled.a`
 
 const BackIcon = styled.img`
   height: 20px;
-  padding: 25px 15px 15px 20px;
+  padding: 25px 10px 15px 20px;
   vertical-align: top;
   cursor: pointer;
+  transform-origin: 25px 35px;
+  transition: transform linear 100ms;
+
+  &:hover {
+    transform: scale(1.3);
+  }
 `
 
 const Title = styled.div`
@@ -27,7 +33,7 @@ const Title = styled.div`
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  padding: 24px 15px 15px 0;
+  padding: 24px 15px 15px 5px;
 `
 
 const Menu = styled.div`

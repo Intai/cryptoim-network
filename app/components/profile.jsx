@@ -36,7 +36,7 @@ const AliasTextInput = styled.input`
   max-width: calc(100% - 60px);
   width: 100%;
   font-size: 30px;
-  margin: 20px 2px 1.5px 13px;
+  margin: 18px 2px 1.5px 13px;
   box-sizing: border-box;
 `
 

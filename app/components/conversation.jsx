@@ -17,6 +17,28 @@ import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
 import MessageListStore from '../stores/message-list-store'
 
+const GroupIcon = styled.img`
+  height: 14px;
+  vertical-align: top;
+  margin: 3px 10px 0 0;
+  transition: transform linear 100ms;
+`
+
+const Title = styled.div`
+  ${({ isGroupChat }) => isGroupChat && 'cursor: pointer;'}
+
+  &:hover >${GroupIcon} {
+    transform: scale(1.3);
+  }
+`
+
+const TitleText = styled.div`
+  display: inline-block;
+  max-width: calc(100% - 28px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
 const TrashIcon = styled.img`
   height: 14px;
   padding: 28px 20px 18px 15px;
@@ -105,6 +127,14 @@ const Conversation = (props) => {
     filterSortMessages(loginPub, conversePub)(messages)
   ), [conversePub, loginPub, messages])
 
+  // navigate to edit group name and members.
+  const isGroupChat = !!conversation?.memberPubs
+  const handleEditGroup = useCallback(() => {
+    if (isGroupChat) {
+      dispatch(LocationAction.push(`/group/${converseUuid}`))
+    }
+  }, [converseUuid, dispatch, isGroupChat])
+
   // delete the conversation and then navigate back to the list.
   const handleDelete = useCallback(() => {
     dispatch(ConversationAction.remove(conversation))
@@ -151,9 +181,22 @@ const Conversation = (props) => {
   return (
     <>
       <PanelHeader>
-        {getContactName(contact)
-          || getGroupName(login, contacts, conversation)
-          || conversePub}
+        <Title
+          isGroupChat={isGroupChat}
+          onClick={handleEditGroup}
+        >
+          {isGroupChat && (
+            <GroupIcon
+              src={getStaticUrl('/icons/user-group.svg')}
+              alt="Group"
+            />
+          )}
+          <TitleText>
+            {getContactName(contact)
+              || getGroupName(login, contacts, conversation)
+              || conversePub}
+          </TitleText>
+        </Title>
         <TrashIcon
           src={getStaticUrl('/icons/trash.svg')}
           title="Delete the conversation"
