@@ -22,6 +22,8 @@ import {
   removeConversation,
   createGroup,
   updateGroup,
+  removeGroup,
+  getGroupOnce,
   getRemovedRequests,
   removeRequest,
   getConversationMessage,
@@ -363,10 +365,12 @@ export const renewGroupMembers = ({
   if (removedPubs.length > 0) {
     // generate a new pair to exclude removed members.
     Sea.pair().then(renewPair => {
-      // update the existing group.
-      updateGroup(groupPair, { memberPubs }, group => {
+      // get the existing group.
+      getGroupOnce(groupPair, group => {
         // and create a new group for the new pair.
-        createGroup(renewPair, group)
+        createGroup(renewPair, { ...group, memberPubs })
+        // then remove the existing group.
+        removeGroup(groupPair)
       })
       // send the new pair to remaining members.
       remainingPubs.concat(loginPub).forEach(userPub => {
