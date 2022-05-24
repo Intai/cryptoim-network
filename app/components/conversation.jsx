@@ -169,7 +169,7 @@ const Conversation = (props) => {
             <Message
               key={message.uuid}
               login={login}
-              contact={contact}
+              contacts={contacts}
               message={message}
               prev={prev}
             />

@@ -1,4 +1,5 @@
-import React from 'react'
+import { find, propEq } from 'ramda'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { tertiaryBackground, secondaryText } from './color'
 import { fontSmall } from './typography'
@@ -52,11 +53,15 @@ const getLocalDateString = timestamp => new Date(timestamp)
     minute: 'numeric',
   })
 
-const Message = ({ login, contact, message, prev }) => {
+const Message = ({ login, contacts, message, prev }) => {
   const { content, fromPub, timestamp } = message
   const { pair: { pub: loginPub } } = login
   const isMine = fromPub === loginPub
-  const isSameContact = prev?.fromPub === fromPub
+  const isSameContact = prev?.fromPub === fromPub && typeof prev?.content === 'string'
+
+  const contact = useMemo(() => (
+    find(propEq('pub', fromPub), contacts)
+  ), [contacts, fromPub])
 
   if (typeof content !== 'string') {
     return false
