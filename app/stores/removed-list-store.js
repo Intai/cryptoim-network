@@ -1,5 +1,4 @@
 import {
-  assoc,
   converge,
   identity,
   mergeDeepRight,
@@ -32,9 +31,12 @@ const whenRemoved = when(
   isAction(ActionTypes.REQUEST_REMOVED),
   converge(mergeDeepRight, [
     identity,
-    ({ state, action: { uuid } }) => ({
+    ({ state, action: { uuids } }) => ({
       state: {
-        removed: assoc(uuid, true, state?.removed || {}),
+        removed: uuids.reduce((accum, uuid) => {
+          accum[uuid] = true
+          return accum
+        }, { ...state?.removed }),
       },
     }),
   ])

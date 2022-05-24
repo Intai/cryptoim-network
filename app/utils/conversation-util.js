@@ -1,4 +1,4 @@
-import { F, find, memoizeWith, pipe, prop, propEq, T } from 'ramda'
+import { dissoc, F, find, memoizeWith, path, pipe, prop, propEq, T, values, whereEq } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import { jsonParse } from './common-util'
 import { Sea, getGun, gunOnce } from './gun-util'
@@ -21,9 +21,31 @@ const getMessage = (forPair, fromEpub, cb) => {
         // parse the json string and then decrypt back to message object.
         const { encrypted, origin } = jsonParse(json)
         decryptMessage(forPair || getAuthPair(), fromEpub || origin, encrypted)
-          .then(data => {
-            if (data) {
-              cb(data)
+          .then(message => {
+            if (message) {
+              const { content: encryptedContent } = message
+
+              // if the content is encrypted.
+              if (typeof encryptedContent === 'string' && /^SEA{/.test(encryptedContent)) {
+                // try to decrypt using login private key.
+                decryptMessage(getAuthPair(), origin, encryptedContent)
+                  .then(content => {
+                    // if decrypt successfully,
+                    // return the message with decrypted content.
+                    if (content) {
+                      const { nextPair } = message
+                      const { renewPair } = content
+                      cb({
+                        ...message,
+                        content,
+                        nextPair: renewPair || nextPair,
+                      })
+                    }
+                  })
+              } else {
+                // content is in plain text or object.
+                cb(message)
+              }
             }
           })
       }
@@ -58,6 +80,11 @@ export const getMyMessage = cb => (
   )
 )
 
+const encryptData = async (user, fromPair, data) => {
+  const passphrase = await Sea.secret(user.epub, fromPair)
+  return await Sea.encrypt(data, passphrase)
+}
+
 const encryptMessage = async (user, fromPair, conversePub, content) => {
   const message = {
     uuid: uuidv4(),
@@ -67,12 +94,10 @@ const encryptMessage = async (user, fromPair, conversePub, content) => {
     nextPair: content.nextPair || await Sea.pair(),
     timestamp: Date.now(),
   }
-  const passphrase = await Sea.secret(user.epub, fromPair)
-  const encrypted = await Sea.encrypt(message, passphrase)
 
   return {
     message,
-    encrypted,
+    encrypted: await encryptData(user, fromPair, message),
     origin: fromPair.epub,
   }
 }
@@ -112,6 +137,35 @@ const whenUser = user => (
   !user || user.epub
 )
 
+export const sendNextMessageToUser = (nextPair, toPub, conversePub, content, cb) => {
+  if (!toPub) {
+    cb({ err: 'Invalid contact.' })
+    return
+  }
+
+  getGun().user(toPub).on(gunOnce(whenUser, user => {
+    if (!user) {
+      cb({ err: 'Invalid contact.' })
+    } else {
+      encryptData(user, nextPair, content)
+        .then(encrypted => {
+          sendMessage(
+            // to the next message.
+            nextPair,
+            // from the message itself.
+            nextPair,
+            // in a conversation.
+            conversePub,
+            // encrypted content.
+            encrypted,
+            // callback to return the message sent.
+            cb
+          )
+        })
+    }
+  }))
+}
+
 export const sendMessageToUser = (toPub, conversePub, content, cb) => {
   if (!toPub) {
     cb({ err: 'Invalid contact.' })
@@ -138,24 +192,69 @@ export const sendMessageToUser = (toPub, conversePub, content, cb) => {
   }))
 }
 
+export const createGroup = (groupPair, group) => {
+  // encrypt the group details for members.
+  Sea.encrypt(group, groupPair).then(encrypted => {
+    getAuthUser()
+      .get('groups')
+      .get(`group-${groupPair.pub}`)
+      .put(encrypted)
+  })
+}
+
+export const updateGroup = (groupPair, update, cb) => {
+  const groupNode = getAuthUser()
+    .get('groups')
+    .get(`group-${groupPair.pub}`)
+
+  groupNode.on(gunOnce(T, encrypted => {
+    if (encrypted) {
+      Sea.decrypt(encrypted, groupPair).then(data => {
+        // if there is actual change.
+        if (data && !whereEq(update, data)) {
+          const group = {
+            ...data,
+            ...update,
+          }
+          // encrypt the updated group and put it back.
+          Sea.encrypt(group, groupPair).then(encrypted => {
+            groupNode.put(encrypted)
+
+            if (cb) {
+              cb(group)
+            }
+          })
+        }
+      })
+    }
+  }))
+}
+
 const uuidCache = {}
 
 export const createConversation = (message, cb) => {
   const { content, conversePub, fromPub, nextPair, timestamp } = message
-  const { memberPubs = null } = content
-  const targetPub = (conversePub !== getAuthPair().pub) ? conversePub : fromPub
+  const { adminPub = null, memberPubs = null } = content
+  const authPair = getAuthPair()
+  const targetPub = (conversePub !== authPair.pub) ? conversePub : fromPub
   const uuid = uuidCache[targetPub] || uuidv4()
   uuidCache[targetPub] = uuid
   const conversation = {
     uuid,
     conversePub: targetPub,
-    memberPubs,
+    rootPair: nextPair,
     nextPair,
     lastTimestamp: timestamp,
+
+    // group chat.
+    adminPub,
+    memberPubs,
+    groupPair: nextPair,
+    groupTimestamp: timestamp,
   }
 
   // encrypt the conversation, so others can not trace.
-  Sea.encrypt(conversation, getAuthPair()).then(encrypted => {
+  Sea.encrypt(conversation, authPair).then(encrypted => {
     getAuthUser()
       .get('conversations')
       .get(`conversation-${uuid}`)
@@ -165,9 +264,54 @@ export const createConversation = (message, cb) => {
       cb(conversation)
     }
   })
+
+  // if it's a group chat,
+  // and the login user in the admin.
+  if (memberPubs && adminPub === authPair.pub) {
+    // encrypt the group for all members.
+    createGroup(nextPair, {
+      name: '',
+      memberPubs,
+    })
+  }
+}
+
+const getConversationDetails = memoizeWith(path(['groupPair', 'pub']), conversation => {
+  const { uuid, adminPub, groupPair } = conversation
+  let ev
+
+  if (adminPub) {
+    getGun()
+      .user(adminPub)
+      .get('groups')
+      .get(`group-${groupPair.pub}`)
+      .on((encrypted, _key, _msg, _ev) => {
+        ev = _ev
+        if (encrypted) {
+          Sea.decrypt(encrypted, groupPair).then(group => {
+            if (group) {
+              updateConversation(uuid, group)
+            }
+          })
+        }
+      })
+  }
+
+  return () => {
+    if (ev) {
+      ev.off()
+    }
+  }
+})
+
+const pushUnsub = (unsub, unsubs) => {
+  if (unsubs.indexOf(unsub) < 0) {
+    unsubs.push(unsub)
+  }
 }
 
 export const getConversation = cb => {
+  let unsubs = []
   let ev
 
   // get conversation one by one, also when created or updated.
@@ -181,6 +325,8 @@ export const getConversation = cb => {
           if (conversation) {
             const { uuid, conversePub } = conversation
             uuidCache[conversePub] = uuid
+            const unsub = getConversationDetails(conversation)
+            pushUnsub(unsub, unsubs)
             cb(conversation)
           }
         })
@@ -188,10 +334,37 @@ export const getConversation = cb => {
     })
 
   return () => {
+    if (unsubs.length > 0) {
+      pipe(...unsubs)()
+    }
     if (ev) {
       ev.off()
     }
   }
+}
+
+export const updateConversation = (converseUuid, update) => {
+  const converseNode = getAuthUser()
+    .get('conversations')
+    .get(`conversation-${converseUuid}`)
+
+  converseNode.on(gunOnce(T, encrypted => {
+    if (encrypted) {
+      Sea.decrypt(encrypted, getAuthPair()).then(data => {
+        // if there is actual change.
+        if (data && !whereEq(update, data)) {
+          const conversation = {
+            ...data,
+            ...update,
+          }
+          // encrypt the updated conversation and put it back.
+          Sea.encrypt(conversation, getAuthPair()).then(encrypted => {
+            converseNode.put(encrypted)
+          })
+        }
+      })
+    }
+  }))
 }
 
 export const removeConversation = conversation => {
@@ -201,16 +374,15 @@ export const removeConversation = conversation => {
     .put(null)
 }
 
-export const getRemovedRequest = cb => {
+export const getRemovedRequests = cb => {
   let ev
 
   getAuthUser()
     .get('requests')
-    .map()
-    .on((uuid, _key, _msg, _ev) => {
+    .on((requests, _key, _msg, _ev) => {
       ev = _ev
-      if (uuid) {
-        cb(uuid)
+      if (requests) {
+        cb(values(dissoc('_', requests)))
       }
     })
 
@@ -227,12 +399,6 @@ export const removeRequest = message => {
     .get('requests')
     .get(`request-${uuid}`)
     .put(uuid)
-}
-
-const pushUnsub = (unsub, unsubs) => {
-  if (unsubs.indexOf(unsub) < 0) {
-    unsubs.push(unsub)
-  }
 }
 
 // recursively follow the chain of messages.
@@ -261,50 +427,6 @@ export const getConversationMessage = cb => {
   return unsubs.length > 0
     ? pipe(...unsubs)
     : F
-}
-
-export const updateConversationName = (converseUuid, name) => {
-  const converseNode = getAuthUser()
-    .get('conversations')
-    .get(`conversation-${converseUuid}`)
-
-  converseNode.on(gunOnce(T, encrypted => {
-    if (encrypted) {
-      Sea.decrypt(encrypted, getAuthPair()).then(data => {
-        const conversation = {
-          ...data,
-          name,
-        }
-
-        // update the pair to the first message in the conversation.
-        Sea.encrypt(conversation, getAuthPair()).then(encrypted => {
-          converseNode.put(encrypted)
-        })
-      })
-    }
-  }))
-}
-
-export const updateConversationLastTimestamp = (converseUuid, lastTimestamp) => {
-  const converseNode = getAuthUser()
-    .get('conversations')
-    .get(`conversation-${converseUuid}`)
-
-  converseNode.on(gunOnce(T, encrypted => {
-    if (encrypted) {
-      Sea.decrypt(encrypted, getAuthPair()).then(data => {
-        const conversation = {
-          ...data,
-          lastTimestamp,
-        }
-
-        // update the pair to the first message in the conversation.
-        Sea.encrypt(conversation, getAuthPair()).then(encrypted => {
-          converseNode.put(encrypted)
-        })
-      })
-    }
-  }))
 }
 
 export const expireConversationMessage = (converseUuid, message) => {

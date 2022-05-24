@@ -5,39 +5,16 @@ import { LocationAction } from 'bdux-react-router'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import PanelHeader from './panel-header'
+import ConversationTitle from './conversation-title'
 import Message from './message'
 import MessageInput from './message-input'
 import { scrollbar } from './scrollbar'
 import { getStaticUrl } from '../utils/common-util'
-import { getContactName } from '../utils/contact-util'
-import { getGroupName } from '../utils/conversation-util'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
 import MessageListStore from '../stores/message-list-store'
-
-const GroupIcon = styled.img`
-  height: 14px;
-  vertical-align: top;
-  margin: 3px 10px 0 0;
-  transition: transform linear 100ms;
-`
-
-const Title = styled.div`
-  ${({ isGroupChat }) => isGroupChat && 'cursor: pointer;'}
-
-  &:hover >${GroupIcon} {
-    transform: scale(1.3);
-  }
-`
-
-const TitleText = styled.div`
-  display: inline-block;
-  max-width: calc(100% - 28px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-`
 
 const TrashIcon = styled.img`
   height: 14px;
@@ -128,14 +105,6 @@ const Conversation = (props) => {
     filterSortMessages(loginPub, conversePub)(messages)
   ), [conversePub, loginPub, messages])
 
-  // navigate to edit group name and members.
-  const isGroupChat = !!conversation?.memberPubs
-  const handleEditGroup = useCallback(() => {
-    if (isGroupChat) {
-      dispatch(LocationAction.push(`/group/${converseUuid}`))
-    }
-  }, [converseUuid, dispatch, isGroupChat])
-
   // delete the conversation and then navigate back to the conversation list.
   const handleDelete = useCallback(() => {
     dispatch(ConversationAction.remove(conversation))
@@ -181,22 +150,13 @@ const Conversation = (props) => {
   return (
     <>
       <PanelHeader>
-        <Title
-          isGroupChat={isGroupChat}
-          onClick={handleEditGroup}
-        >
-          {isGroupChat && (
-            <GroupIcon
-              src={getStaticUrl('/icons/user-group.svg')}
-              alt="Group"
-            />
-          )}
-          <TitleText>
-            {getContactName(contact)
-              || getGroupName(login, contacts, conversation)
-              || conversePub}
-          </TitleText>
-        </Title>
+        <ConversationTitle
+          conversation={conversation}
+          contacts={contacts}
+          contact={contact}
+          login={login}
+          dispatch={dispatch}
+        />
         <TrashIcon
           src={getStaticUrl('/icons/trash.svg')}
           title="Delete the conversation"

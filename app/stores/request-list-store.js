@@ -10,6 +10,7 @@ import {
   propEq,
   remove,
   when,
+  whereEq,
 } from 'ramda'
 import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
@@ -31,6 +32,8 @@ const appendRequest = (
   dispatch,
 ) => {
   const source = requests || []
+  const { content, conversePub, nextPair } = request
+  const { adminPub } = content
 
   // ignore the request if it has been accepted or declined.
   if ((removed && removed[request.uuid])
@@ -39,13 +42,26 @@ const appendRequest = (
     return source
   }
 
-  // if already having conversation.
-  if (conversations && find(propEq('conversePub', request.fromPub), conversations)
-    // ignore duplications.
-    || find(propEq('fromPub', request.fromPub), source)) {
-    // don't need to ask again.
-    dispatch(ConversationAction.declineRequest(request))
-    return source
+  if (conversations) {
+    if (
+      // for a group chat request.
+      (adminPub && (
+        // if already accepted the group chat.
+        find(whereEq({ conversePub, rootPair: nextPair }), conversations)
+          // and ignore duplications.
+          || find(propEq('conversePub', conversePub), source)))
+
+      // between two users.
+      || (!adminPub && (
+        // if already having conversation.
+        find(propEq('conversePub', request.fromPub), conversations)
+          // and ignore duplications.
+          || find(propEq('fromPub', request.fromPub), source)))
+    ) {
+      // don't need to ask again.
+      dispatch(ConversationAction.declineRequest(request))
+      return source
+    }
   }
 
   return source.concat(request)

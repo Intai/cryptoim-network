@@ -18,6 +18,7 @@ import MessageListStore from '../stores/message-list-store'
 
 const GroupIcon = styled.img`
   height: 14px;
+  width: 18px;
   vertical-align: top;
   margin: 3px 10px 0 0;
 `
@@ -94,10 +95,12 @@ const Group = props => {
   // tick the current group members.
   const checkedPubs = useMemo(() => (
     conversation?.memberPubs.reduce((accum, memberPub) => {
-      accum[memberPub] = true
+      if (loginPub !== memberPub) {
+        accum[memberPub] = true
+      }
       return accum
     }, {}) || {}
-  ), [conversation])
+  ), [conversation, loginPub])
 
   // delete the conversation and then navigate back to the conversation list.
   const handleDelete = useCallback(() => {
@@ -119,11 +122,10 @@ const Group = props => {
   // handle blur to rename the group.
   const handleGroupNameBlur = useCallback(e => {
     const { value } = e.target
-    if (conversation.name !== value && lastMessage) {
+    if (conversation.name !== value) {
       dispatch(ConversationAction.updateGroupName(conversation, value))
-      dispatch(ConversationAction.sendGroupUpdate(lastMessage.nextPair, conversePub, { name: value }))
     }
-  }, [conversation, conversePub, dispatch, lastMessage])
+  }, [conversation, dispatch])
 
   if (!conversation) {
     // unknown conversation.
@@ -141,7 +143,7 @@ const Group = props => {
 
   return (
     <>
-      <PanelHeader>
+      <PanelHeader href={`/conversation/${converseUuid}`}>
         <>
           <GroupIcon
             src={getStaticUrl('/icons/user-group.svg')}
@@ -169,7 +171,11 @@ const Group = props => {
           onBlur={handleGroupNameBlur}
         />
       </GroupNameContainer>
-      <ContactList checkedPubs={checkedPubs} />
+      <ContactList
+        checkedPubs={checkedPubs}
+        conversation={conversation}
+        nextPair={lastMessage?.nextPair || conversation.nextPair}
+      />
     </>
   )
 }

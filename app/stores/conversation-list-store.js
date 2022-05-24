@@ -16,7 +16,6 @@ import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
 import ContactListStore from './contact-list-store'
-import RemovedListStore from './removed-list-store'
 import ActionTypes from '../actions/action-types'
 import * as ConversationAction from '../actions/conversation-action'
 
@@ -108,7 +107,8 @@ const whenAppendMessage = when(
   args => {
     const { state, action: { message }, contactList, dispatch } = args
     const { conversations, selected } = state
-    const { fromPub, timestamp } = message
+    const { content, fromPub, timestamp } = message
+    const conversation = selected || find(isMessageInConversation(message), conversations)
 
     // if the message is in the currently selected conversation.
     if (selected && isMessageInConversation(message)(selected)) {
@@ -120,9 +120,8 @@ const whenAppendMessage = when(
       }
     } else {
       const sender = find(propEq('pub', fromPub), contactList.contacts)
-      const conversation = find(isMessageInConversation(message), conversations)
 
-      if (sender && conversation
+      if (conversation
         // if the message is newer than the lastTimestamp in the conversation.
         && (!conversation.lastTimestamp || timestamp > conversation.lastTimestamp)) {
         // create a browser notification.
@@ -130,22 +129,15 @@ const whenAppendMessage = when(
       }
     }
 
-    return args
-  }
-)
-
-const whenUpdateGroup = when(
-  isAction(ActionTypes.GROUP_UPDATE),
-  args => {
-    const { state, action: { message }, removedList, dispatch } = args
-
-    if (!removedList?.removed[message.uuid]) {
-      // find the conversation by conversePub.
-      const conversation = find(isMessageInConversation(message), state.conversations)
-      if (conversation) {
-        // update the group name in gun user space.
-        dispatch(ConversationAction.applyGroupUpdate(conversation, message))
-      }
+    if (content.type === 'renewGroup' && conversation
+      // if the renewGroup message is newer than the groupTimestamp in the conversation.
+      && (!conversation.groupTimestamp || timestamp > conversation.groupTimestamp)) {
+      // update the groupTimestamp in the conversation.
+      dispatch(ConversationAction.updateGroupTimestamp(conversation, timestamp))
+      // update groupPair to new one to exclude some members.
+      dispatch(ConversationAction.updateGroupConversation(conversation, {
+        groupPair: content.renewPair,
+      }))
     }
 
     return args
@@ -235,7 +227,6 @@ export const getReducer = () => {
       .map(whenSendRequestError)
       .map(whenSendGroupRequests)
       .map(whenClearRequestError)
-      .map(whenUpdateGroup)
       .map(prop('state')),
   }
 }
@@ -243,6 +234,5 @@ export const getReducer = () => {
 export default createStore(
   StoreNames.CONVERSATION_LIST, getReducer, {
     contactList: ContactListStore,
-    removedList: RemovedListStore,
   }
 )

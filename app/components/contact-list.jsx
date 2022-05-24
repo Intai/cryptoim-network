@@ -1,6 +1,8 @@
+import { difference, intersection, keys } from 'ramda'
 import React, { useCallback, useState } from 'react'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
+import { LocationAction } from 'bdux-react-router'
 import Button from './button'
 import ContactListItem from './contact-list-item'
 import { alertBackground } from './color'
@@ -44,7 +46,7 @@ const useBdux = createUseBdux({
 })
 
 const ContactList = props => {
-  const { checkedPubs: propsCheckedPubs } = props
+  const { checkedPubs: propsCheckedPubs, conversation, nextPair } = props
   const isEditingGroup = !!propsCheckedPubs
   const checkedPubs = propsCheckedPubs || defaultCheckedPubs
   const { state: { login, contactList, conversationList }, dispatch } = useBdux(props)
@@ -61,17 +63,19 @@ const ContactList = props => {
     setIsGroupChat(false)
   }, [])
 
+  // start a new group chat.
   const handleStartGroup = useCallback(e => {
     const formData = new FormData(e.target)
     const publicKeys = Array.from(formData.keys())
     const names = Array.from(formData.values())
 
+    // there needs to be at least one user selected.
     if (publicKeys.length > 0) {
       dispatch(ConversationAction.sendGroupRequests(
         publicKeys,
         login.pair.pub,
-        getGroupRequestMessage(login, names))
-      )
+        getGroupRequestMessage(login, names)
+      ))
       setError(null)
     } else {
       setError('Please select at least one contact.')
@@ -79,10 +83,51 @@ const ContactList = props => {
     e.preventDefault()
   }, [dispatch, login])
 
+  // edit existing group members.
+  const handleEditGroup = useCallback(e => {
+    const formData = new FormData(e.target)
+    const prevPubs = keys(checkedPubs)
+    const nextPubs = Array.from(formData.keys())
+    const names = Array.from(formData.values())
+    const removedPubs = difference(prevPubs, nextPubs)
+    const addedPubs = difference(nextPubs, prevPubs)
+    const remainingPubs = intersection(prevPubs, nextPubs)
+
+    if (nextPubs.length > 0) {
+      const { pub: loginPub } = login.pair
+      const memberPubs = [loginPub].concat(nextPubs)
+      const text = getGroupRequestMessage(login, names)
+
+      // - update group details.
+      // - invite new members.
+      // - exclude removed members.
+      dispatch(ConversationAction.renewGroupMembers({
+        conversation,
+        nextPair,
+        memberPubs,
+        addedPubs,
+        removedPubs,
+        remainingPubs,
+        loginPub,
+        text,
+      }))
+
+      if (conversation) {
+        // assuming we want to get back to conversation after updating group members.
+        dispatch(LocationAction.push(`/conversation/${conversation.uuid}`))
+      } else {
+        setError(null)
+      }
+    } else {
+      setError('Please select at least one contact.')
+    }
+    e.preventDefault()
+  }, [checkedPubs, conversation, dispatch, login, nextPair])
+
   return contacts.length > 0 && (
     <Container>
       <Title>Contacts</Title>
-      <form onSubmit={handleStartGroup}>
+      <form onSubmit={isEditingGroup ? handleEditGroup : handleStartGroup}>
         <Buttons>
           {!isGroupChat && (
             <Button

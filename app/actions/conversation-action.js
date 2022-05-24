@@ -18,15 +18,17 @@ import { Sea } from '../utils/gun-util'
 import {
   getConversation,
   createConversation,
+  updateConversation,
   removeConversation,
-  getRemovedRequest,
+  createGroup,
+  updateGroup,
+  getRemovedRequests,
   removeRequest,
   getConversationMessage,
   getMyMessage,
-  sendMessageToUser,
   sendNextMessage,
-  updateConversationName,
-  updateConversationLastTimestamp,
+  sendMessageToUser,
+  sendNextMessageToUser,
   expireConversationMessage,
 } from '../utils/conversation-util'
 
@@ -36,10 +38,10 @@ export const init = () => mergeAll(
   }),
 
   fromBinder(sink => (
-    getRemovedRequest(uuid => {
+    getRemovedRequests(uuids => {
       sink({
         type: ActionTypes.REQUEST_REMOVED,
-        uuid,
+        uuids,
       })
     })
   )),
@@ -55,15 +57,19 @@ export const init = () => mergeAll(
 
   fromBinder(sink => (
     getConversationMessage(message => {
-      sink({
-        type: ActionTypes.MESSAGE_APPEND,
-        message,
-      })
+      const { type, renewPair } = message.content
 
-      const { type } = message.content
-      if (type === 'updateGroup') {
+      if (type === 'renewGroup') {
         sink({
-          type: ActionTypes.GROUP_UPDATE,
+          type: ActionTypes.MESSAGE_APPEND,
+          message: {
+            ...message,
+            nextPair: renewPair,
+          },
+        })
+      } else {
+        sink({
+          type: ActionTypes.MESSAGE_APPEND,
           message,
         })
       }
@@ -143,28 +149,47 @@ export const sendMessage = (nextPair, conversePub, content) => mergeAll(
 export const updateLastTimestamp = (conversation, lastTimestamp) => {
   // update the conversation's lastTimestamp,
   // so we can figure out which messages are new.
-  updateConversationLastTimestamp(conversation.uuid, lastTimestamp)
+  updateConversation(conversation.uuid, { lastTimestamp })
 }
 
-export const notifyNewMessage = (contact, conversation, message) => (
-  canUseDOM()
-    && typeof message.content === 'string'
-    && Notification.permission === 'granted'
-    && fromCallback(callback => {
-      const { alias, name } = contact
-      const notification = new Notification(`New message from ${name || alias}`, {
-        tag: message.uuid,
-        body: message.content,
-        icon: getStaticUrl('/favicon/favicon-32x32.png'),
-      })
+export const updateGroupTimestamp = (conversation, groupTimestamp) => {
+  // update the conversation's groupTimestamp,
+  // so we can figure out groupPair.
+  updateConversation(conversation.uuid, { groupTimestamp })
+}
 
-      notification.addEventListener('click', () => {
-        window.focus()
-        notification.close()
-        callback(LocationAction.push(`/conversation/${conversation.uuid}`))
+const getNotificationMessage = (contact, conversation) => {
+  if (conversation.name) {
+    return `New message in group ${conversation.name}`
+  }
+  if (contact) {
+    const { alias, name } = contact
+    return `New message from ${name || alias}`
+  }
+}
+
+export const notifyNewMessage = (contact, conversation, message) => {
+  if (canUseDOM()
+    && typeof message.content === 'string'
+    && Notification.permission === 'granted') {
+    const title = getNotificationMessage(contact, conversation)
+    if (title) {
+      return fromCallback(callback => {
+        const notification = new Notification(title, {
+          tag: message.uuid,
+          body: message.content,
+          icon: getStaticUrl('/favicon/favicon-32x32.png'),
+        })
+
+        notification.addEventListener('click', () => {
+          window.focus()
+          notification.close()
+          callback(LocationAction.push(`/conversation/${conversation.uuid}`))
+        })
       })
-    })
-)
+    }
+  }
+}
 
 export const sendRequest = (userPub, text) => mergeAll(
   once({
@@ -248,6 +273,7 @@ export const sendGroupRequests = (userPubs, loginPub, text) => mergeAll(
         fromCallback(callback => {
           const content = {
             type: 'request',
+            adminPub: loginPub,
             memberPubs: [loginPub].concat(userPubs),
             nextPair,
             text,
@@ -295,27 +321,70 @@ export const sendGroupRequests = (userPubs, loginPub, text) => mergeAll(
     })
 )
 
-export const updateGroupName = (conversation, name) => {
-  // update the group conversation's name.
+export const updateGroupConversation = (conversation, update) => {
+  // update the group conversation e.g groupPair.
   if (conversation.memberPubs) {
-    updateConversationName(conversation.uuid, name)
+    updateConversation(conversation.uuid, update)
   }
 }
 
-export const applyGroupUpdate = (conversation, message) => {
-  const { content: { name } } = message
-  // mark the group update as processed.
-  removeRequest(message)
-  // and then update the group.
-  updateGroupName(conversation, name)
+export const updateGroupName = (conversation, name) => {
+  // update the group name.
+  if (conversation.memberPubs) {
+    updateGroup(conversation.groupPair, { name })
+  }
 }
 
-export const sendGroupUpdate = (nextPair, conversePub, update) => {
-  // send group update inside the conversation.
-  sendNextMessage(nextPair, conversePub, {
-    type: 'updateGroup',
-    ...update,
-  })
+export const renewGroupMembers = ({
+  conversation,
+  nextPair,
+  memberPubs,
+  addedPubs,
+  removedPubs,
+  remainingPubs,
+  loginPub,
+  text,
+}) => {
+  const { conversePub, groupPair } = conversation
+
+  const sendRequests = targetPair => {
+    // send group requests to new members.
+    addedPubs.map(userPub => {
+      sendMessageToUser(userPub, conversePub, {
+        type: 'request',
+        adminPub: loginPub,
+        memberPubs,
+        nextPair: targetPair,
+        text,
+      })
+    })
+  }
+
+  if (removedPubs.length > 0) {
+    // generate a new pair to exclude removed members.
+    Sea.pair().then(renewPair => {
+      // update the existing group.
+      updateGroup(groupPair, { memberPubs }, group => {
+        // and create a new group for the new pair.
+        createGroup(renewPair, group)
+      })
+      // send the new pair to remaining members.
+      remainingPubs.concat(loginPub).forEach(userPub => {
+        sendNextMessageToUser(nextPair, userPub, conversePub, {
+          type: 'renewGroup',
+          renewPair,
+        })
+      })
+      // send requests to new members.
+      sendRequests(renewPair)
+    })
+  } else {
+    // if there is no one removed,
+    // simply update the existing group.
+    updateGroup(groupPair, { memberPubs })
+    // send requests to new members.
+    sendRequests(groupPair)
+  }
 }
 
 export const clearError = userPub => ({
