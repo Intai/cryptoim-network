@@ -15,6 +15,7 @@ import {
 import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
+import LoginStore from './login-store'
 import ContactListStore from './contact-list-store'
 import ActionTypes from '../actions/action-types'
 import * as ConversationAction from '../actions/conversation-action'
@@ -92,23 +93,25 @@ const whenSelect = when(
   ])
 )
 
-const isMessageInConversation = message => conversation => {
+const isMessageInConversation = (loginPub, message) => conversation => {
   const { conversePub } = conversation
   const { conversePub: messageConversePub, fromPub } = message
 
   // message from myself in the conversation.
+  // or messages in a group chat.
   return conversePub === messageConversePub
     // or from the other user.
-    || conversePub === fromPub
+    || (loginPub === messageConversePub && conversePub === fromPub)
 }
 
 const whenAppendMessage = when(
   isAction(ActionTypes.MESSAGE_APPEND),
   args => {
-    const { state, action: { message }, contactList, dispatch } = args
+    const { state, action: { message }, login, contactList, dispatch } = args
     const { conversations, selected } = state
     const { content, fromPub, timestamp } = message
-    const conversation = selected || find(isMessageInConversation(message), conversations)
+    const { pair: { pub: loginPub } } = login
+    const conversation = selected || find(isMessageInConversation(loginPub, message), conversations)
 
     // if the message is in the currently selected conversation.
     if (selected && isMessageInConversation(message)(selected)) {
@@ -233,6 +236,7 @@ export const getReducer = () => {
 
 export default createStore(
   StoreNames.CONVERSATION_LIST, getReducer, {
+    login: LoginStore,
     contactList: ContactListStore,
   }
 )

@@ -39,7 +39,7 @@ const GroupIcon = styled.img`
   padding: 0 10px 0 0;
 `
 
-const isNewMessageInConversation = (conversePub, lastTimestamp) => message => {
+const isNewMessageInConversation = (loginPub, conversePub, lastTimestamp) => message => {
   const { content, conversePub: messageConversePub, fromPub, timestamp } = message
 
   // count only text messages.
@@ -47,12 +47,14 @@ const isNewMessageInConversation = (conversePub, lastTimestamp) => message => {
     // if the message is newer.
     && (!lastTimestamp || timestamp > lastTimestamp)
     // message from myself in the conversation.
+    // or messages in a group chat.
     && (conversePub === messageConversePub
       // or from the other user.
-      || conversePub === fromPub)
+      || (loginPub === messageConversePub && conversePub === fromPub))
 }
 
 const ConversationListItem = ({ login, contacts, conversation, messages, isSelected, dispatch }) => {
+  const { pair: { pub: loginPub } } = login
   const { uuid, conversePub, memberPubs, lastTimestamp } = conversation
   const contact = find(propEq('pub', conversePub), contacts)
   const label = getContactName(contact)
@@ -64,8 +66,8 @@ const ConversationListItem = ({ login, contacts, conversation, messages, isSelec
   }, [dispatch, uuid])
 
   const newCount = useMemo(() => (
-    count(isNewMessageInConversation(conversePub, lastTimestamp), messages)
-  ), [conversePub, lastTimestamp, messages])
+    count(isNewMessageInConversation(loginPub, conversePub, lastTimestamp), messages)
+  ), [conversePub, lastTimestamp, loginPub, messages])
 
   return (
     <ListItem
