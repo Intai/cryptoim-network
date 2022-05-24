@@ -43,9 +43,11 @@ const TrashIcon = styled.img`
 `
 
 const GroupNameContainer = styled.div`
-  max-width: calc(100% - 40px);
+  max-width: 100%;
   width: 975px;
   padding: 0 20px;
+  margin: 0 auto;
+  box-sizing: border-box;
 `
 
 const GroupNameTitle = styled.div`
