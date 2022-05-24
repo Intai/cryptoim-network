@@ -21,6 +21,21 @@ const MessageButton = styled(Button)`
   width: 70px;
 `
 
+const getNextPair = (conversation, messages) => {
+  const lastMessage = last(messages)
+  const lastNextPair = lastMessage?.nextPair
+  const converseNextPair = conversation.nextPair
+
+  if (lastNextPair && converseNextPair) {
+    // a new conversation could be created after previous messages
+    // by deleting the previous conversation and accepting a new request.
+    return lastMessage.timestamp <= conversation.createdTimestamp
+      ? converseNextPair
+      : lastNextPair
+  }
+  return lastNextPair || converseNextPair
+}
+
 const MessageInput = ({ conversation, messages, dispatch }) => {
   const handleSend = useCallback((e) => {
     const formData = new FormData(e.target)
@@ -30,7 +45,8 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
     if (text) {
       // the next pair either from the last message
       // or the conversation's initial pair.
-      const nextPair = last(messages)?.nextPair || conversation.nextPair
+      const nextPair = getNextPair(conversation, messages)
+
       if (nextPair) {
         // send a text message using the nextPair.
         dispatch(ConversationAction.sendMessage(nextPair, conversation.conversePub, text))
