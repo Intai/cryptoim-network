@@ -73,6 +73,18 @@ const whenExpire = when(
   ])
 )
 
+const whenLogout = when(
+  isAction(ActionTypes.LOGOUT),
+  converge(mergeDeepRight, [
+    identity,
+    () => ({
+      state: {
+        messages: [],
+      },
+    }),
+  ])
+)
+
 export const getReducer = () => {
   const reducerStream = new Bus()
   return {
@@ -81,6 +93,7 @@ export const getReducer = () => {
       .map(whenInit)
       .map(whenAppend)
       .map(whenExpire)
+      .map(whenLogout)
       .map(prop('state')),
   }
 }

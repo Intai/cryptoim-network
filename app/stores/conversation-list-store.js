@@ -218,6 +218,20 @@ const whenClearRequestError = when(
   ])
 )
 
+const whenLogout = when(
+  isAction(ActionTypes.LOGOUT),
+  converge(mergeDeepRight, [
+    identity,
+    () => ({
+      state: {
+        conversations: [],
+        selected: null,
+        errors: {},
+      },
+    }),
+  ])
+)
+
 export const getReducer = () => {
   const reducerStream = new Bus()
   return {
@@ -232,6 +246,7 @@ export const getReducer = () => {
       .map(whenSendRequestError)
       .map(whenSendGroupRequests)
       .map(whenClearRequestError)
+      .map(whenLogout)
       .map(prop('state')),
   }
 }

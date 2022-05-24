@@ -122,6 +122,18 @@ const whenAcceptDecline = when(
   ])
 )
 
+const whenLogout = when(
+  isAction(ActionTypes.LOGOUT),
+  converge(mergeDeepRight, [
+    identity,
+    () => ({
+      state: {
+        requests: [],
+      },
+    }),
+  ])
+)
+
 export const getReducer = () => {
   const reducerStream = new Bus()
   return {
@@ -130,6 +142,7 @@ export const getReducer = () => {
       .map(whenInit)
       .map(whenReceive)
       .map(whenAcceptDecline)
+      .map(whenLogout)
       .map(prop('state')),
   }
 }

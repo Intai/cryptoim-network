@@ -106,6 +106,19 @@ const whenClearAppendError = when(
   ])
 )
 
+const whenLogout = when(
+  isAction(ActionTypes.LOGOUT),
+  converge(mergeDeepRight, [
+    identity,
+    () => ({
+      state: {
+        contacts: [],
+        err: null,
+      },
+    }),
+  ])
+)
+
 export const getReducer = () => {
   const reducerStream = new Bus()
   return {
@@ -116,6 +129,7 @@ export const getReducer = () => {
       .map(whenAppendError)
       .map(whenClearAppendError)
       .map(whenDelete)
+      .map(whenLogout)
       .map(prop('state')),
   }
 }
