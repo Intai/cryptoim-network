@@ -237,19 +237,6 @@ export const removeGroup = groupPair => {
     .put(null)
 }
 
-export const getGroupOnce = (groupPair, cb) => {
-  getAuthUser()
-    .get('groups')
-    .get(`group-${groupPair.pub}`)
-    .on(gunOnce(T, encrypted => {
-      if (encrypted) {
-        Sea.decrypt(encrypted, groupPair).then(group => {
-          cb(group)
-        })
-      }
-    }))
-}
-
 const uuidCache = {}
 
 export const createConversation = (message, cb) => {
@@ -265,6 +252,7 @@ export const createConversation = (message, cb) => {
     rootPair: nextPair,
     nextPair,
     lastTimestamp: timestamp,
+    createdTimestamp: Date.now(),
 
     // group chat.
     adminPub,

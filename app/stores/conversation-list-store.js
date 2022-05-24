@@ -31,7 +31,9 @@ const appendConversation = (conversation, conversations) => {
   if (!current) {
     return source.concat(conversation)
   }
-  if (!equals(current, conversation)) {
+  if (!equals(current, conversation)
+    // keep the newly created conversation.
+    && conversation.createdTimestamp >= current.createdTimestamp) {
     const index = source.indexOf(current)
     return update(index, conversation, source)
   }
@@ -114,7 +116,7 @@ const whenAppendMessage = when(
     const conversation = selected || find(isMessageInConversation(loginPub, message), conversations)
 
     // if the message is in the currently selected conversation.
-    if (selected && isMessageInConversation(message)(selected)) {
+    if (selected && isMessageInConversation(loginPub, message)(selected)) {
       // and the timestamp is newer.
       const currentTimestamp = selected.lastTimestamp
       if (!currentTimestamp || timestamp > currentTimestamp) {
