@@ -43,7 +43,9 @@ export const init = () => mergeAll(
   )),
 
   fromBinder(sink => (
-    getConversationMessage(appendConversationMessage(sink))
+    getConversationMessage(
+      appendConversationMessage(sink)
+    )
   )),
 
   fromBinder(sink => (

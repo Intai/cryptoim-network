@@ -1,14 +1,18 @@
 import {
+  both,
+  complement,
   converge,
   either,
   find,
   findIndex,
   identity,
   mergeDeepRight,
+  path,
   pathEq,
   prop,
   propEq,
   remove,
+  sort,
   when,
   whereEq,
 } from 'ramda'
@@ -25,6 +29,10 @@ import * as RequestAction from '../actions/request-action'
 
 const isAction = pathEq(
   ['action', 'type'],
+)
+
+const compareRequests = (a, b) => (
+  (b.timestamp || 0) - (a.timestamp || 0)
 )
 
 const appendRequest = ({
@@ -63,7 +71,13 @@ const appendRequest = ({
     // between two users.
     if (!adminPub) {
       // ignore duplications.
-      if (find(propEq('fromPub', request.fromPub), source)) {
+      if (find(
+        both(
+          complement(path(['content', 'adminPub'])),
+          propEq('fromPub', request.fromPub)
+        ),
+        source
+      )) {
         // don't need to ask again.
         dispatch(RequestAction.declineRequest(request))
         return source
@@ -83,7 +97,7 @@ const appendRequest = ({
     }
   }
 
-  return source.concat(request)
+  return sort(compareRequests, source.concat(request))
 }
 
 const updateRequests = ({
@@ -99,7 +113,7 @@ const removeRequest = (request, requests) => {
   const source = requests || []
 
   // assuming there is no duplications.
-  const index = findIndex(propEq('fromPub', request.fromPub), source)
+  const index = findIndex(propEq('uuid', request.uuid), source)
   return (index < 0)
     ? source
     : remove(index, 1, source)

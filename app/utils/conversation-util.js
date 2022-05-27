@@ -4,16 +4,24 @@ import { jsonParse } from './common-util'
 import { Sea, getGun, gunOnce } from './gun-util'
 import { getAuthUser, getAuthPair } from './login-util'
 
+const get15days = ms =>  Math.floor(ms / 1000 / 60 / 60 / 24 / 15)
+
+const minus15days = ms => ms - 1000 * 60 * 60 * 24 * 15
+
 const decryptMessage = async (forPair, fromEpub, encrypted) => {
   let passphrase = await Sea.secret(fromEpub, forPair)
   return await Sea.decrypt(encrypted, passphrase)
 }
 
-const getMessage = (forPair, fromEpub, cb) => {
+const getMessage = (forPair, fromEpub, queryDays, cb) => {
   let ev
 
   getGun().get('#messages')
-    .get({ '.': { '*': `${forPair.pub}-` } })
+    .get({
+      '.': {
+        '*': `${forPair.pub}-${queryDays}`,
+      },
+    })
     .map()
     .on((json, _key, _msg, _ev) => {
       ev = _ev
@@ -64,18 +72,30 @@ export const getNextMessage = (nextPair, cb) => (
     nextPair,
     // from the message itself.
     nextPair.epub,
+    // do not query by days.
+    '',
     // callback to return message one by one.
     cb
   )
 )
 
-export const getMyMessage = cb => (
+export const getMyMessage = cb => pipe(
   getMessage(
     // for me.
     getAuthPair(),
     // from everyone.
     null,
+    // query the current 15 days interval.
+    `${get15days(Date.now())}-`,
     // callback to return message one by one.
+    cb
+  ),
+
+  getMessage(
+    getAuthPair(),
+    null,
+    // query 15 days prior.
+    `${get15days(minus15days(Date.now()))}-`,
     cb
   )
 )
@@ -111,7 +131,7 @@ const sendMessage = (user, fromPair, conversePub, content, cb) => {
       Sea.work(json, null, null, { name: 'SHA-256' })
         .then(hash => {
           getGun().get('#messages')
-            .get(`${user.pub}-#${hash}`)
+            .get(`${user.pub}-${get15days(message.timestamp)}-#${hash}`)
             .put(json)
 
           cb({ message })
