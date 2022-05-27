@@ -1,10 +1,10 @@
 import { find, last, propEq } from 'ramda'
 import React, { useCallback, useMemo } from 'react'
 import { useParams } from 'react-router'
-import { LocationAction } from 'bdux-react-router'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import PanelHeader from './panel-header'
+import ConversationDelete from './conversation-delete'
 import TextInput from './text-input'
 import ContactList from './contact-list'
 import { fontLarge } from './typography'
@@ -29,18 +29,6 @@ const TitleText = styled.div`
   max-width: calc(100% - 28px);
   overflow: hidden;
   text-overflow: ellipsis;
-`
-
-const TrashIcon = styled.img`
-  height: 14px;
-  padding: 28px 20px 18px 15px;
-  vertical-align: top;
-  cursor: pointer;
-  opacity: 0.5;
-
-  &:hover {
-    opacity: 1;
-  }
 `
 
 const GroupNameContainer = styled.div`
@@ -92,12 +80,6 @@ const Group = props => {
     }, {}) || {}
   ), [conversation, loginPub])
 
-  // delete the conversation and then navigate back to the conversation list.
-  const handleDelete = useCallback(() => {
-    dispatch(ConversationAction.remove(conversation))
-    dispatch(LocationAction.replace('/conversations'))
-  }, [conversation, dispatch])
-
   // handle enter and escape key for group name.
   const handleGroupNameKeyDown = useCallback(e => {
     if (e.keyCode === 13) {
@@ -122,10 +104,9 @@ const Group = props => {
     return (
       <PanelHeader>
         {''}
-        <TrashIcon
-          src={getStaticUrl('/icons/trash.svg')}
-          title="Delete the conversation"
-          onClick={handleDelete}
+        <ConversationDelete
+          conversation={conversation}
+          dispatch={dispatch}
         />
       </PanelHeader>
     )
@@ -144,10 +125,9 @@ const Group = props => {
               || conversation.conversePub}
           </TitleText>
         </>
-        <TrashIcon
-          src={getStaticUrl('/icons/trash.svg')}
-          title="Delete the conversation"
-          onClick={handleDelete}
+        <ConversationDelete
+          conversation={conversation}
+          dispatch={dispatch}
         />
       </PanelHeader>
       <GroupNameContainer>

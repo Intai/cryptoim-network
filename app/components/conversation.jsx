@@ -1,16 +1,15 @@
 import { find, last, propEq, reduce } from 'ramda'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useParams } from 'react-router'
-import { LocationAction } from 'bdux-react-router'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import PanelHeader from './panel-header'
 import ConversationTitle from './conversation-title'
+import ConversationDelete from './conversation-delete'
 import Anchor from './anchor'
 import Message from './message'
 import MessageInput from './message-input'
 import { scrollbar } from './scrollbar'
-import { getStaticUrl } from '../utils/common-util'
 import { filterSortMessages } from '../utils/message-util'
 import * as MessageAction from '../actions/message-action'
 import * as ConversationAction from '../actions/conversation-action'
@@ -18,18 +17,6 @@ import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
 import MessageListStore from '../stores/message-list-store'
-
-const TrashIcon = styled.img`
-  height: 14px;
-  padding: 28px 20px 18px 15px;
-  vertical-align: top;
-  cursor: pointer;
-  opacity: 0.5;
-
-  &:hover {
-    opacity: 1;
-  }
-`
 
 const Container = styled.div`
   max-width: calc(100% - 40px);
@@ -101,12 +88,6 @@ const Conversation = (props) => {
     filterSortMessages(loginPub, conversePub)(messages)
   ), [conversePub, loginPub, messages])
 
-  // delete the conversation and then navigate back to the conversation list.
-  const handleDelete = useCallback(() => {
-    dispatch(ConversationAction.remove(conversation))
-    dispatch(LocationAction.replace('/conversations'))
-  }, [conversation, dispatch])
-
   // load expired messages in the conversation.
   const handleLoadMore = useCallback(e => {
     dispatch(MessageAction.getExpiredMessages(conversation))
@@ -154,10 +135,9 @@ const Conversation = (props) => {
     return (
       <PanelHeader>
         {''}
-        <TrashIcon
-          src={getStaticUrl('/icons/trash.svg')}
-          title="Delete the conversation"
-          onClick={handleDelete}
+        <ConversationDelete
+          conversation={conversation}
+          dispatch={dispatch}
         />
       </PanelHeader>
     )
@@ -173,10 +153,9 @@ const Conversation = (props) => {
           login={login}
           dispatch={dispatch}
         />
-        <TrashIcon
-          src={getStaticUrl('/icons/trash.svg')}
-          title="Delete the conversation"
-          onClick={handleDelete}
+        <ConversationDelete
+          conversation={conversation}
+          dispatch={dispatch}
         />
       </PanelHeader>
       <Container>
