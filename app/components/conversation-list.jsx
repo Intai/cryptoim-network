@@ -16,7 +16,7 @@ const Title = styled.div`
 `
 
 const compareConversations = (a, b) => (
-  (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
+  (b.createdTimestamp || 0) - (a.createdTimestamp || 0)
 )
 
 const useBdux = createUseBdux({
