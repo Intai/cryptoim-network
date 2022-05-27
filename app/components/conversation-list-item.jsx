@@ -81,7 +81,7 @@ const ConversationListItem = ({ login, contacts, conversation, messages, isSelec
         />
       )}
       <Label>{label}</Label>
-      {!!newCount && <Count>{newCount} new</Count>}
+      {!!newCount && !isSelected && <Count>{newCount} new</Count>}
     </ListItem>
   )
 }
