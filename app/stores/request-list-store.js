@@ -15,8 +15,11 @@ import {
 import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
+import LoginStore from './login-store'
 import ConversationListStore from './conversation-list-store'
+import MessageListStore from './message-list-store'
 import RemovedListStore from './removed-list-store'
+import { filterSortMessages, getNextPair } from '../utils/message-util'
 import ActionTypes from '../actions/action-types'
 import * as ConversationAction from '../actions/conversation-action'
 
@@ -24,13 +27,15 @@ const isAction = pathEq(
   ['action', 'type'],
 )
 
-const appendRequest = (
+const appendRequest = ({
   request,
-  removed,
   requests,
+  login,
   conversations,
+  messages,
+  removed,
   dispatch,
-) => {
+}) => {
   const source = requests || []
   const { content, conversePub, nextPair } = request
   const { adminPub } = content
@@ -43,24 +48,38 @@ const appendRequest = (
   }
 
   if (conversations) {
-    if (
-      // for a group chat request.
-      (adminPub && (
-        // if already accepted the group chat.
-        find(whereEq({ conversePub, rootPair: nextPair }), conversations)
-          // and ignore duplications.
-          || find(propEq('conversePub', conversePub), source)))
-
-      // between two users.
-      || (!adminPub && (
-        // if already having conversation.
-        find(propEq('conversePub', request.fromPub), conversations)
-          // and ignore duplications.
-          || find(propEq('fromPub', request.fromPub), source)))
+    // for a group chat request.
+    if (adminPub && (
+      // if already accepted the group chat.
+      find(whereEq({ conversePub, rootPair: nextPair }), conversations)
+        // and ignore duplications.
+        || find(propEq('conversePub', conversePub), source))
     ) {
       // don't need to ask again.
       dispatch(ConversationAction.declineRequest(request))
       return source
+    }
+
+    // between two users.
+    if (!adminPub) {
+      // ignore duplications.
+      if (find(propEq('fromPub', request.fromPub), source)) {
+        // don't need to ask again.
+        dispatch(ConversationAction.declineRequest(request))
+        return source
+      }
+
+      // if already having conversation.
+      const conversation = find(propEq('conversePub', request.fromPub), conversations)
+      if (conversation) {
+        // amend the request into the conversation.
+        dispatch(ConversationAction.amendRequest(
+          getNextPair(conversation, filterSortMessages(login.pair.pub, conversePub)(messages)),
+          conversePub,
+          request
+        ))
+        return source
+      }
     }
   }
 
@@ -93,15 +112,17 @@ const whenReceive = when(
   isAction(ActionTypes.REQUEST_APPEND),
   converge(mergeDeepRight, [
     identity,
-    ({ state, action: { message }, conversationList, removedList, dispatch }) => ({
+    ({ state, action: { message }, login, conversationList, messageList, removedList, dispatch }) => ({
       state: {
-        requests: appendRequest(
-          message,
-          removedList?.removed,
-          state?.requests,
-          conversationList?.conversations,
+        requests: appendRequest({
+          request: message,
+          requests: state?.requests,
+          login,
+          conversations: conversationList?.conversations,
+          messages: messageList?.messages,
+          removed: removedList?.removed,
           dispatch,
-        ),
+        }),
       },
     }),
   ])
@@ -149,7 +170,9 @@ export const getReducer = () => {
 
 export default createStore(
   StoreNames.REQUEST_LIST, getReducer, {
+    login: LoginStore,
     conversationList: ConversationListStore,
+    messageList: MessageListStore,
     removedList: RemovedListStore,
   }
 )

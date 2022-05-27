@@ -1,4 +1,4 @@
-import { filter, find, last, pipe, prop, propEq, sortBy } from 'ramda'
+import { find, last, propEq } from 'ramda'
 import React, { useCallback, useMemo } from 'react'
 import { useParams } from 'react-router'
 import { LocationAction } from 'bdux-react-router'
@@ -10,6 +10,7 @@ import ContactList from './contact-list'
 import { fontLarge } from './typography'
 import { getStaticUrl } from '../utils/common-util'
 import { getGroupDefaultName, getGroupName } from '../utils/conversation-util'
+import { filterSortMessages } from '../utils/message-util'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
@@ -54,19 +55,6 @@ const GroupNameTitle = styled.div`
   ${fontLarge}
   margin: 15px 0;
 `
-
-const sortByTimestamp = sortBy(prop('timestamp'))
-
-const filterSortMessages = (loginPub, conversePub) => pipe(
-  filter(({ conversePub: messageConversePub, fromPub }) => (
-    // message from myself in the conversation,
-    // or messages in a group chat.
-    (conversePub === messageConversePub)
-      // or from the other user.
-      || (loginPub === messageConversePub && conversePub === fromPub)
-  )),
-  sortByTimestamp
-)
 
 const useBdux = createUseBdux({
   login: LoginStore,

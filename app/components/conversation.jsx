@@ -1,4 +1,4 @@
-import { filter, find, last, pipe, prop, propEq, reduce, sortBy } from 'ramda'
+import { find, last, propEq, reduce } from 'ramda'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useParams } from 'react-router'
 import { LocationAction } from 'bdux-react-router'
@@ -11,6 +11,7 @@ import Message from './message'
 import MessageInput from './message-input'
 import { scrollbar } from './scrollbar'
 import { getStaticUrl } from '../utils/common-util'
+import { filterSortMessages } from '../utils/message-util'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
@@ -48,19 +49,6 @@ const MessageList = styled.ul`
   ${scrollbar}
   flex: 1;
 `
-
-const sortByTimestamp = sortBy(prop('timestamp'))
-
-const filterSortMessages = (loginPub, conversePub) => pipe(
-  filter(({ conversePub: messageConversePub, fromPub }) => (
-    // message from myself in the conversation,
-    // or messages in a group chat.
-    (conversePub === messageConversePub)
-      // or from the other user.
-      || (loginPub === messageConversePub && conversePub === fromPub)
-  )),
-  sortByTimestamp
-)
 
 const renderMessages = (render, messages) => reduce(
   ({ elements, prev }, message) => {

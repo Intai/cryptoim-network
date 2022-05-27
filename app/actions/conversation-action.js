@@ -81,11 +81,6 @@ export const init = () => mergeAll(
 
   fromBinder(sink => (
     getMyMessage(message => {
-      sink({
-        type: ActionTypes.MESSAGE_APPEND,
-        message,
-      })
-
       const { type } = message.content
       if (type === 'request') {
         sink({
@@ -288,6 +283,21 @@ export const declineRequest = message => {
   return {
     type: ActionTypes.REQUEST_DECLINE,
     message,
+  }
+}
+
+export const amendRequest = (nextPair, conversePub, request) => {
+  // mark the request as processed.
+  removeRequest(request)
+  // send a message in the conversation to amend the next pair.
+  sendNextMessage(nextPair, conversePub, {
+    type: 'amendRequest',
+    nextPair: request.nextPair,
+  })
+  // remove the request from request list store.
+  return {
+    type: ActionTypes.REQUEST_ACCEPT,
+    message: request,
   }
 }
 

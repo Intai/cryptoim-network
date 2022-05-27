@@ -1,8 +1,8 @@
-import { last } from 'ramda'
 import React, { useCallback } from 'react'
 import styled from 'styled-components'
 import TextInput from './text-input'
 import Button from './button'
+import { getNextPair } from '../utils/message-util'
 import * as ConversationAction from '../actions/conversation-action'
 
 const MessageForm = styled.form`
@@ -20,21 +20,6 @@ const MessageButton = styled(Button)`
   margin-bottom: 30px;
   width: 70px;
 `
-
-const getNextPair = (conversation, messages) => {
-  const lastMessage = last(messages)
-  const lastNextPair = lastMessage?.nextPair
-  const converseNextPair = conversation.nextPair
-
-  if (lastNextPair && converseNextPair) {
-    // a new conversation could be created after previous messages
-    // by deleting the previous conversation and accepting a new request.
-    return lastMessage.timestamp <= conversation.createdTimestamp
-      ? converseNextPair
-      : lastNextPair
-  }
-  return lastNextPair || converseNextPair
-}
 
 const MessageInput = ({ conversation, messages, dispatch }) => {
   const handleSend = useCallback((e) => {
