@@ -31,4 +31,5 @@ export default Common.createObjOfConsts([
   'REQUEST_ACCEPT',
   'REQUEST_DECLINE',
   'REQUEST_REMOVED',
+  'REQUEST_REMOVED_UPDATE',
 ])

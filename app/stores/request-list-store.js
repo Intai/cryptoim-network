@@ -86,6 +86,15 @@ const appendRequest = ({
   return source.concat(request)
 }
 
+const updateRequests = ({
+  requests,
+  removed,
+}) => (
+  (requests && removed)
+    ? requests.filter(request => !removed[request.uuid])
+    : requests
+)
+
 const removeRequest = (request, requests) => {
   const source = requests || []
 
@@ -128,6 +137,21 @@ const whenReceive = when(
   ])
 )
 
+const whenRemovedUpdate = when(
+  isAction(ActionTypes.REQUEST_REMOVED_UPDATE),
+  converge(mergeDeepRight, [
+    identity,
+    ({ state, removedList }) => ({
+      state: {
+        requests: updateRequests({
+          requests: state?.requests,
+          removed: removedList?.removed,
+        }),
+      },
+    }),
+  ])
+)
+
 const whenAcceptDecline = when(
   either(
     isAction(ActionTypes.REQUEST_ACCEPT),
@@ -163,6 +187,7 @@ export const getReducer = () => {
       .map(whenInit)
       .map(whenReceive)
       .map(whenAcceptDecline)
+      .map(whenRemovedUpdate)
       .map(whenLogout)
       .map(prop('state')),
   }

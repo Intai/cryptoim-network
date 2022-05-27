@@ -92,6 +92,10 @@ export const init = () => mergeAll(
   ))
 )
 
+export const updateRequestRemoved = () => ({
+  type: ActionTypes.REQUEST_REMOVED_UPDATE,
+})
+
 export const remove = conversation => {
   if (conversation) {
     removeConversation(conversation)
