@@ -402,7 +402,7 @@ export const renewGroupMembers = ({
 
   const sendRequests = targetPair => {
     // send group requests to new members.
-    addedPubs.map(userPub => {
+    addedPubs.concat(remainingPubs).map(userPub => {
       sendMessageToUser(userPub, conversePub, {
         type: 'request',
         adminPub: loginPub,
