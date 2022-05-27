@@ -8,12 +8,16 @@ const get15days = ms =>  Math.floor(ms / 1000 / 60 / 60 / 24 / 15)
 
 const minus15days = ms => ms - 1000 * 60 * 60 * 24 * 15
 
-const decryptMessage = async (forPair, fromEpub, encrypted) => {
-  let passphrase = await Sea.secret(fromEpub, forPair)
-  return await Sea.decrypt(encrypted, passphrase)
+const decryptMessage = async (forPair, fromPair, encrypted) => {
+  const verified = await Sea.verify(encrypted, fromPair.pub)
+  if (verified) {
+    const passphrase = await Sea.secret(fromPair.epub, forPair)
+    return await Sea.decrypt(verified, passphrase)
+  }
+  return null
 }
 
-const getMessage = (forPair, fromEpub, queryDays, cb) => {
+const getMessage = (forPair, fromPair, queryDays, cb) => {
   let ev
 
   getGun().get('#messages')
@@ -27,8 +31,8 @@ const getMessage = (forPair, fromEpub, queryDays, cb) => {
       ev = _ev
       if (json) {
         // parse the json string and then decrypt back to message object.
-        const { encrypted, origin } = jsonParse(json)
-        decryptMessage(forPair || getAuthPair(), fromEpub || origin, encrypted)
+        const { encrypted, originPair } = jsonParse(json)
+        decryptMessage(forPair || getAuthPair(), fromPair || originPair || {}, encrypted)
           .then(message => {
             if (message) {
               const { content: encryptedContent } = message
@@ -36,7 +40,7 @@ const getMessage = (forPair, fromEpub, queryDays, cb) => {
               // if the content is encrypted.
               if (typeof encryptedContent === 'string' && /^SEA{/.test(encryptedContent)) {
                 // try to decrypt using login private key.
-                decryptMessage(getAuthPair(), origin, encryptedContent)
+                decryptMessage(getAuthPair(), originPair || {}, encryptedContent)
                   .then(content => {
                     // if decrypt successfully,
                     // return the message with decrypted content.
@@ -71,7 +75,7 @@ export const getNextMessage = (nextPair, cb) => (
     // for the previous message.
     nextPair,
     // from the message itself.
-    nextPair.epub,
+    nextPair,
     // do not query by days.
     '',
     // callback to return message one by one.
@@ -102,7 +106,8 @@ export const getMyMessage = cb => pipe(
 
 const encryptData = async (user, fromPair, data) => {
   const passphrase = await Sea.secret(user.epub, fromPair)
-  return await Sea.encrypt(data, passphrase)
+  const encrypted = await Sea.encrypt(data, passphrase)
+  return await Sea.sign(encrypted, fromPair)
 }
 
 const encryptMessage = async (user, fromPair, conversePub, content) => {
@@ -119,15 +124,18 @@ const encryptMessage = async (user, fromPair, conversePub, content) => {
   return {
     message,
     encrypted: await encryptData(user, fromPair, message),
-    origin: fromPair.epub,
+    originPair: {
+      pub: fromPair.pub,
+      epub: fromPair.epub,
+    },
   }
 }
 
 const sendMessage = (user, fromPair, conversePub, content, cb) => {
   encryptMessage(user, fromPair, conversePub, content)
-    .then(({ message, encrypted, origin }) => {
+    .then(({ message, encrypted, originPair }) => {
       // hash the encrypted message to freeze, so it can not be modified.
-      const json = JSON.stringify({ encrypted, origin })
+      const json = JSON.stringify({ encrypted, originPair })
       Sea.work(json, null, null, { name: 'SHA-256' })
         .then(hash => {
           getGun().get('#messages')
