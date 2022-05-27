@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { primaryBackground, primaryButton, secondaryButton } from './color'
 import { getStaticUrl } from '../utils/common-util'
 import * as ContactAction from '../actions/contact-action'
-import * as ConversationAction from '../actions/conversation-action'
+import * as RequestAction from '../actions/request-action'
 
 const AcceptButton = styled.div`
   ${secondaryButton}
@@ -73,12 +73,12 @@ const RequestListItem = ({ login, request, dispatch }) => {
       dispatch(ContactAction.append(fromPub))
     }
     // accept and create a conversation.
-    dispatch(ConversationAction.acceptRequest(request))
+    dispatch(RequestAction.acceptRequest(request))
   }, [dispatch, fromPub, loginPub, memberPubs, request])
 
   const handleDecline = useCallback(() => {
     // decline the request. do not create a conversation.
-    dispatch(ConversationAction.declineRequest(request))
+    dispatch(RequestAction.declineRequest(request))
   }, [dispatch, request])
 
   return (

@@ -6,7 +6,7 @@ import PanelHeader from './panel-header'
 import { fontLarge } from './typography'
 import { getRequestMessage } from '../utils/login-util'
 import * as ContactAction from '../actions/contact-action'
-import * as ConversationAction from '../actions/conversation-action'
+import * as RequestAction from '../actions/request-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
@@ -39,7 +39,7 @@ const InviteResult = props => {
   useEffect(() => {
     if (publicKey) {
       dispatch(ContactAction.append(publicKey))
-      dispatch(ConversationAction.sendRequest(publicKey, getRequestMessage(login)))
+      dispatch(RequestAction.sendRequest(publicKey, getRequestMessage(login)))
     }
   // didMount
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -12,6 +12,7 @@ import MessageInput from './message-input'
 import { scrollbar } from './scrollbar'
 import { getStaticUrl } from '../utils/common-util'
 import { filterSortMessages } from '../utils/message-util'
+import * as MessageAction from '../actions/message-action'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
@@ -108,7 +109,7 @@ const Conversation = (props) => {
 
   // load expired messages in the conversation.
   const handleLoadMore = useCallback(e => {
-    dispatch(ConversationAction.getExpiredMessages(conversation))
+    dispatch(MessageAction.getExpiredMessages(conversation))
     e.preventDefault()
   }, [conversation, dispatch])
 
@@ -128,7 +129,7 @@ const Conversation = (props) => {
     // expiring messages is not urgent. debounce until message list is stable.
     clearTimeout(expireTimeoutRef.current)
     expireTimeoutRef.current = setTimeout(() => {
-      dispatch(ConversationAction.expireConversation(converseUuid, filteredMessages))
+      dispatch(MessageAction.expireConversationMessages(converseUuid, filteredMessages))
     }, 1000)
 
     return () => {

@@ -10,7 +10,7 @@ import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
 import ActionTypes from '../actions/action-types'
-import * as ConversationAction from '../actions/conversation-action'
+import * as RequestAction from '../actions/request-action'
 
 const isAction = pathEq(
   ['action', 'type'],
@@ -33,7 +33,7 @@ const whenRemoved = when(
   converge(mergeDeepRight, [
     identity,
     ({ state, action: { uuids }, dispatch }) => {
-      dispatch(ConversationAction.updateRequestRemoved())
+      dispatch(RequestAction.updateRequestRemoved())
       return {
         state: {
           removed: uuids.reduce((accum, uuid) => {

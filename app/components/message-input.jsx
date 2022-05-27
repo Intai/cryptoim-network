@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import TextInput from './text-input'
 import Button from './button'
 import { getNextPair } from '../utils/message-util'
-import * as ConversationAction from '../actions/conversation-action'
+import * as MessageAction from '../actions/message-action'
 
 const MessageForm = styled.form`
   flex: 0 0 72px;
@@ -34,7 +34,7 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
 
       if (nextPair) {
         // send a text message using the nextPair.
-        dispatch(ConversationAction.sendMessage(nextPair, conversation.conversePub, text))
+        dispatch(MessageAction.sendMessage(nextPair, conversation.conversePub, text))
         // clear the text input.
         if (input) {
           input.value = ''

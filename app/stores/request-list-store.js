@@ -21,7 +21,7 @@ import MessageListStore from './message-list-store'
 import RemovedListStore from './removed-list-store'
 import { filterSortMessages, getNextPair } from '../utils/message-util'
 import ActionTypes from '../actions/action-types'
-import * as ConversationAction from '../actions/conversation-action'
+import * as RequestAction from '../actions/request-action'
 
 const isAction = pathEq(
   ['action', 'type'],
@@ -56,7 +56,7 @@ const appendRequest = ({
         || find(propEq('conversePub', conversePub), source))
     ) {
       // don't need to ask again.
-      dispatch(ConversationAction.declineRequest(request))
+      dispatch(RequestAction.declineRequest(request))
       return source
     }
 
@@ -65,7 +65,7 @@ const appendRequest = ({
       // ignore duplications.
       if (find(propEq('fromPub', request.fromPub), source)) {
         // don't need to ask again.
-        dispatch(ConversationAction.declineRequest(request))
+        dispatch(RequestAction.declineRequest(request))
         return source
       }
 
@@ -73,7 +73,7 @@ const appendRequest = ({
       const conversation = find(propEq('conversePub', request.fromPub), conversations)
       if (conversation) {
         // amend the request into the conversation.
-        dispatch(ConversationAction.amendRequest(
+        dispatch(RequestAction.amendRequest(
           getNextPair(conversation, filterSortMessages(login.pair.pub, conversePub)(messages)),
           conversePub,
           request

@@ -94,18 +94,6 @@ const whenDelete = when(
   ])
 )
 
-const whenClearAppendError = when(
-  isAction(ActionTypes.CONTACT_CLEAR_APPEND_ERROR),
-  converge(mergeDeepRight, [
-    identity,
-    () => ({
-      state: {
-        err: null,
-      },
-    }),
-  ])
-)
-
 const whenLogout = when(
   isAction(ActionTypes.LOGOUT),
   converge(mergeDeepRight, [
@@ -127,7 +115,6 @@ export const getReducer = () => {
       .map(whenInit)
       .map(whenAppend)
       .map(whenAppendError)
-      .map(whenClearAppendError)
       .map(whenDelete)
       .map(whenLogout)
       .map(prop('state')),

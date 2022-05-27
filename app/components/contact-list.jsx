@@ -8,6 +8,7 @@ import ContactListItem from './contact-list-item'
 import { alertBackground } from './color'
 import { fontLarge } from './typography'
 import { getGroupRequestMessage } from '../utils/login-util'
+import * as RequestAction from '../actions/request-action'
 import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
@@ -71,7 +72,7 @@ const ContactList = props => {
 
     // there needs to be at least one user selected.
     if (publicKeys.length > 0) {
-      dispatch(ConversationAction.sendGroupRequests(
+      dispatch(RequestAction.sendGroupRequests(
         publicKeys,
         login.pair.pub,
         getGroupRequestMessage(login, names)

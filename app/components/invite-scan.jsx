@@ -10,7 +10,7 @@ import { alertBackground, secondaryBorder } from './color'
 import { canUseDOM } from '../utils/common-util'
 import { getRequestMessage } from '../utils/login-util'
 import * as ContactAction from '../actions/contact-action'
-import * as ConversationAction from '../actions/conversation-action'
+import * as RequestAction from '../actions/request-action'
 import LoginStore from '../stores/login-store'
 import ConversationListStore from '../stores/conversation-list-store'
 
@@ -63,7 +63,7 @@ const InviteScan = props => {
         if (publicKey && publicKeyRef.current !== publicKey) {
           publicKeyRef.current = publicKey
           dispatch(ContactAction.append(publicKey))
-          dispatch(ConversationAction.sendRequest(publicKey, requestMessage))
+          dispatch(RequestAction.sendRequest(publicKey, requestMessage))
         }
       }, {
         highlightScanRegion: true,

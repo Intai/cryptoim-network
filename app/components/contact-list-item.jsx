@@ -7,6 +7,7 @@ import { secondaryBackground } from './color'
 import { getStaticUrl } from '../utils/common-util'
 import { getRequestMessage } from '../utils/login-util'
 import * as ContactAction from '../actions/contact-action'
+import * as RequestAction from '../actions/request-action'
 import * as ConversationAction from '../actions/conversation-action'
 
 const ListItem = styled.li`
@@ -70,7 +71,7 @@ const ContactListItem = ({
     } else if (conversation) {
       dispatch(LocationAction.push(`/conversation/${conversation.uuid}`))
     } else {
-      dispatch(ConversationAction.sendRequest(pub, getRequestMessage(login)))
+      dispatch(RequestAction.sendRequest(pub, getRequestMessage(login)))
     }
   }, [conversation, dispatch, isGroupChat, login, pub])
 

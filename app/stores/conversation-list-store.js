@@ -18,6 +18,7 @@ import StoreNames from './store-names'
 import LoginStore from './login-store'
 import ContactListStore from './contact-list-store'
 import ActionTypes from '../actions/action-types'
+import * as MessageAction from '../actions/message-action'
 import * as ConversationAction from '../actions/conversation-action'
 
 const isAction = pathEq(
@@ -130,18 +131,18 @@ const whenAppendMessage = when(
         // if the message is newer than the lastTimestamp in the conversation.
         && (!conversation.lastTimestamp || timestamp > conversation.lastTimestamp)) {
         // create a browser notification.
-        dispatch(ConversationAction.notifyNewMessage(sender, conversation, message))
+        dispatch(MessageAction.notifyNewMessage(sender, conversation, message))
       }
     }
 
     if (content.type === 'renewGroup' && conversation
       // if the renewGroup message is newer than the groupTimestamp in the conversation.
       && (!conversation.groupTimestamp || timestamp > conversation.groupTimestamp)) {
-      // update the groupTimestamp in the conversation.
-      dispatch(ConversationAction.updateGroupTimestamp(conversation, timestamp))
-      // update groupPair to new one to exclude some members.
+      // update groupTimestamp in the conversation,
+      // and groupPair to new one to exclude some members.
       dispatch(ConversationAction.updateGroupConversation(conversation, {
         groupPair: content.renewPair,
+        groupTimestamp: timestamp,
       }))
     }
 
@@ -204,20 +205,6 @@ const whenSendRequestError = when(
   ])
 )
 
-const whenClearRequestError = when(
-  isAction(ActionTypes.CONVERSATION_CLEAR_REQUEST_ERROR),
-  converge(mergeDeepRight, [
-    identity,
-    ({ action: { userPub } }) => ({
-      state: {
-        errors: {
-          [userPub]: null,
-        },
-      },
-    }),
-  ])
-)
-
 const whenLoadExpired = when(
   isAction(ActionTypes.CONVERSATION_LOAD_EXPIRED),
   converge(mergeDeepRight, [
@@ -260,7 +247,6 @@ export const getReducer = () => {
       .map(whenSendRequest)
       .map(whenSendRequestError)
       .map(whenSendGroupRequests)
-      .map(whenClearRequestError)
       .map(whenLoadExpired)
       .map(whenLogout)
       .map(prop('state')),
