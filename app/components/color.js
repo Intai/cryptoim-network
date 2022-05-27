@@ -22,6 +22,10 @@ export const alertBackground = ({ theme }) => `
   color: ${theme.color.alertText};
 `
 
+export const primaryText = ({ theme }) => `
+  color: ${theme.color.primaryText};
+`
+
 export const secondaryText = ({ theme }) => `
   color: ${theme.color.secondaryText};
 `

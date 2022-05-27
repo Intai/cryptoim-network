@@ -1,13 +1,11 @@
 import {
   converge,
   find,
-  findIndex,
   identity,
   mergeDeepRight,
   pathEq,
   prop,
   propEq,
-  remove,
   when,
 } from 'ramda'
 import { Bus } from 'baconjs'
@@ -25,16 +23,6 @@ const appendMessage = (message, messages) => {
   return dup
     ? source
     : source.concat(message)
-}
-
-const removeMessage = (message, messages) => {
-  const source = messages || []
-
-  // assuming there is no duplications.
-  const index = findIndex(propEq('uuid', message.uuid), source)
-  return (index < 0)
-    ? source
-    : remove(index, 1, source)
 }
 
 const whenInit = when(
@@ -61,18 +49,6 @@ const whenAppend = when(
   ])
 )
 
-const whenExpire = when(
-  isAction(ActionTypes.MESSAGE_EXPIRE),
-  converge(mergeDeepRight, [
-    identity,
-    ({ state, action: { message } }) => ({
-      state: {
-        messages: removeMessage(message, state?.messages),
-      },
-    }),
-  ])
-)
-
 const whenLogout = when(
   isAction(ActionTypes.LOGOUT),
   converge(mergeDeepRight, [
@@ -92,7 +68,6 @@ export const getReducer = () => {
     output: reducerStream
       .map(whenInit)
       .map(whenAppend)
-      .map(whenExpire)
       .map(whenLogout)
       .map(prop('state')),
   }

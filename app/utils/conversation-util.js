@@ -91,6 +91,7 @@ const encryptMessage = async (user, fromPair, conversePub, content) => {
     content,
     conversePub,
     fromPub: getAuthPair().pub,
+    encryptPub: fromPair.pub,
     nextPair: content.nextPair || await Sea.pair(),
     timestamp: Date.now(),
   }
@@ -432,6 +433,17 @@ export const getConversationMessage = cb => {
 
   // be able to unsubscribe from the conversation and all messages recursively.
   pushUnsub(unsub, unsubs)
+  return unsubs.length > 0
+    ? pipe(...unsubs)
+    : F
+}
+
+export const getExpiredConversationMessage = (conversation, cb) => {
+  const unsubs = []
+
+  // get messages one by one from the very first pair.
+  getNextMessageRecursive(conversation.rootPair, cb, unsubs)
+  // unsubscribe from all messages recursively.
   return unsubs.length > 0
     ? pipe(...unsubs)
     : F

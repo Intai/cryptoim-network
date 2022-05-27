@@ -218,6 +218,21 @@ const whenClearRequestError = when(
   ])
 )
 
+const whenLoadExpired = when(
+  isAction(ActionTypes.CONVERSATION_LOAD_EXPIRED),
+  converge(mergeDeepRight, [
+    identity,
+    ({ state, action: { conversation } }) => ({
+      state: {
+        conversations: appendConversation({
+          ...conversation,
+          nextPair: conversation.rootPair,
+        }, state?.conversations),
+      },
+    }),
+  ])
+)
+
 const whenLogout = when(
   isAction(ActionTypes.LOGOUT),
   converge(mergeDeepRight, [
@@ -246,6 +261,7 @@ export const getReducer = () => {
       .map(whenSendRequestError)
       .map(whenSendGroupRequests)
       .map(whenClearRequestError)
+      .map(whenLoadExpired)
       .map(whenLogout)
       .map(prop('state')),
   }

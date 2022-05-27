@@ -1,4 +1,4 @@
-import { filter, find, prop, propEq } from 'ramda'
+import { filter, find, findLast, prop, propEq } from 'ramda'
 import {
   combineAsArray,
   combineTemplate,
@@ -25,12 +25,32 @@ import {
   getRemovedRequests,
   removeRequest,
   getConversationMessage,
+  getExpiredConversationMessage,
   getMyMessage,
   sendNextMessage,
   sendMessageToUser,
   sendNextMessageToUser,
   expireConversationMessage,
 } from '../utils/conversation-util'
+
+const appendConversationMessage = sink => message => {
+  const { type, renewPair } = message.content
+
+  if (type === 'renewGroup') {
+    sink({
+      type: ActionTypes.MESSAGE_APPEND,
+      message: {
+        ...message,
+        nextPair: renewPair,
+      },
+    })
+  } else {
+    sink({
+      type: ActionTypes.MESSAGE_APPEND,
+      message,
+    })
+  }
+}
 
 export const init = () => mergeAll(
   once({
@@ -56,24 +76,7 @@ export const init = () => mergeAll(
   )),
 
   fromBinder(sink => (
-    getConversationMessage(message => {
-      const { type, renewPair } = message.content
-
-      if (type === 'renewGroup') {
-        sink({
-          type: ActionTypes.MESSAGE_APPEND,
-          message: {
-            ...message,
-            nextPair: renewPair,
-          },
-        })
-      } else {
-        sink({
-          type: ActionTypes.MESSAGE_APPEND,
-          message,
-        })
-      }
-    })
+    getConversationMessage(appendConversationMessage(sink))
   )),
 
   fromBinder(sink => (
@@ -115,13 +118,53 @@ export const deselectConversation = () => ({
   conversation: null,
 })
 
-export const expireConversation = (converseUuid, message) => {
-  expireConversationMessage(converseUuid, message)
-  return {
-    type: ActionTypes.MESSAGE_EXPIRE,
-    message,
+const countEncryptPub = messages => messages.reduce(
+  (accum, { encryptPub }) => {
+    if (encryptPub) {
+      // count the number of direct child messages in the tree of messages.
+      accum[encryptPub] = (accum[encryptPub] || 0) + 1
+    }
+    return accum
+  },
+  {}
+)
+
+const isSingleExpired = counts => ({ encryptPub, timestamp }) => (
+  // if the message is older than 90 days.
+  timestamp < Date.now() - 1000 * 60 * 60 * 24 * 90
+    // and there is no sibling in the tree of messages.
+    && counts[encryptPub] === 1
+)
+
+const findLastExpiredMessage = sortedMessages => (
+  findLast(
+    isSingleExpired(countEncryptPub(sortedMessages)),
+    sortedMessages
+  )
+)
+
+export const expireConversation = (converseUuid, sortedMessages) => {
+  const lastExpiredMessage = findLastExpiredMessage(sortedMessages)
+  if (lastExpiredMessage) {
+    // expire old messages by pointing the conversation to start from the next pair.
+    expireConversationMessage(converseUuid, lastExpiredMessage)
   }
 }
+
+export const getExpiredMessages = conversation => mergeAll(
+  once({
+    type: ActionTypes.CONVERSATION_LOAD_EXPIRED,
+    conversation,
+  }),
+
+  fromBinder(sink => (
+    // load old messages from the conversation's very first pair.
+    getExpiredConversationMessage(
+      conversation,
+      appendConversationMessage(sink)
+    )
+  ))
+)
 
 export const sendMessage = (nextPair, conversePub, content) => mergeAll(
   once({

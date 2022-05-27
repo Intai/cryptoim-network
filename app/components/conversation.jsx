@@ -6,6 +6,7 @@ import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import PanelHeader from './panel-header'
 import ConversationTitle from './conversation-title'
+import Anchor from './anchor'
 import Message from './message'
 import MessageInput from './message-input'
 import { scrollbar } from './scrollbar'
@@ -36,6 +37,11 @@ const Container = styled.div`
   flex-direction: column;
   flex: 1;
   overflow: hidden;
+`
+
+const LoadMoreAnchor = styled(Anchor)`
+  text-align: center;
+  margin-bottom: 15px;
 `
 
 const MessageList = styled.ul`
@@ -86,6 +92,7 @@ const Conversation = (props) => {
   const { contacts } = contactList
   const { conversations } = conversationList
   const { messages } = messageList
+  const expireTimeoutRef = useRef()
   const scrollbarRef = useRef()
 
   // find the conversation by uuid in url.
@@ -111,6 +118,12 @@ const Conversation = (props) => {
     dispatch(LocationAction.replace('/conversations'))
   }, [conversation, dispatch])
 
+  // load expired messages in the conversation.
+  const handleLoadMore = useCallback(e => {
+    dispatch(ConversationAction.getExpiredMessages(conversation))
+    e.preventDefault()
+  }, [conversation, dispatch])
+
   useEffect(() => {
     dispatch(ConversationAction.selectConversation(conversation, last(filteredMessages)?.timestamp))
   // when selecting a different conversation.
@@ -122,6 +135,20 @@ const Conversation = (props) => {
   // willUnmount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    // expiring messages is not urgent. debounce until message list is stable.
+    clearTimeout(expireTimeoutRef.current)
+    expireTimeoutRef.current = setTimeout(() => {
+      dispatch(ConversationAction.expireConversation(converseUuid, filteredMessages))
+    }, 1000)
+
+    return () => {
+      // didn't get to expire messages. not a big deal.
+      // let's try again when the next time the conversation is selected.
+      clearTimeout(expireTimeoutRef.current)
+    }
+  }, [converseUuid, dispatch, filteredMessages])
 
   useEffect(() => {
     const { current: scrollbar } = scrollbarRef
@@ -164,6 +191,16 @@ const Conversation = (props) => {
         />
       </PanelHeader>
       <Container>
+        {conversation.rootPair.pub !== conversation.nextPair.pub && (
+          <LoadMoreAnchor
+            href={`/conversation/${converseUuid}`}
+            kind="subtle"
+            onClick={handleLoadMore}
+          >
+            {'Load messages older than 90 days'}
+          </LoadMoreAnchor>
+        )}
+
         <MessageList ref={scrollbarRef}>
           {renderMessages((message, prev) => (
             <Message

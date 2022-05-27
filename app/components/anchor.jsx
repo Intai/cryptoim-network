@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { primaryAnchor } from './color'
+import { primaryAnchor, secondaryText } from './color'
 
 const Primary = styled.a`
   &:link,
@@ -13,8 +13,22 @@ const Primary = styled.a`
   }
 `
 
+const Subtle = styled.a`
+  &:link,
+  &:visited {
+    ${secondaryText}
+  }
+
+  &:active,
+  &:hover {
+    color: inherit;
+  }
+`
+
 const getComponent = kind => {
   switch (kind) {
+  case 'subtle':
+    return Subtle
   default:
     return Primary
   }
