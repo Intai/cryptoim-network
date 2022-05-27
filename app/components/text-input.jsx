@@ -42,4 +42,8 @@ const TextInput = props => {
   )
 }
 
+TextInput.defaultProps = {
+  value: '',
+}
+
 export default React.memo(TextInput)

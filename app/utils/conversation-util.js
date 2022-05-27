@@ -9,10 +9,12 @@ const get15days = ms =>  Math.floor(ms / 1000 / 60 / 60 / 24 / 15)
 const minus15days = ms => ms - 1000 * 60 * 60 * 24 * 15
 
 const decryptMessage = async (forPair, fromPair, encrypted) => {
-  const verified = await Sea.verify(encrypted, fromPair.pub)
-  if (verified) {
-    const passphrase = await Sea.secret(fromPair.epub, forPair)
-    return await Sea.decrypt(verified, passphrase)
+  if (fromPair) {
+    const verified = await Sea.verify(encrypted, fromPair.pub)
+    if (verified) {
+      const passphrase = await Sea.secret(fromPair.epub, forPair)
+      return await Sea.decrypt(verified, passphrase)
+    }
   }
   return null
 }
@@ -32,7 +34,7 @@ const getMessage = (forPair, fromPair, queryDays, cb) => {
       if (json) {
         // parse the json string and then decrypt back to message object.
         const { encrypted, originPair } = jsonParse(json)
-        decryptMessage(forPair || getAuthPair(), fromPair || originPair || {}, encrypted)
+        decryptMessage(forPair || getAuthPair(), fromPair || originPair, encrypted)
           .then(message => {
             if (message) {
               const { content: encryptedContent } = message
@@ -40,7 +42,7 @@ const getMessage = (forPair, fromPair, queryDays, cb) => {
               // if the content is encrypted.
               if (typeof encryptedContent === 'string' && /^SEA{/.test(encryptedContent)) {
                 // try to decrypt using login private key.
-                decryptMessage(getAuthPair(), originPair || {}, encryptedContent)
+                decryptMessage(getAuthPair(), originPair, encryptedContent)
                   .then(content => {
                     // if decrypt successfully,
                     // return the message with decrypted content.
