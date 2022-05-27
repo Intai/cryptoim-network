@@ -159,7 +159,7 @@ const Conversation = (props) => {
         />
       </PanelHeader>
       <Container>
-        {conversation.rootPair.pub !== conversation.nextPair.pub && (
+        {conversation.rootPair && conversation.rootPair.pub !== conversation.nextPair.pub && (
           <LoadMoreAnchor
             href={`/conversation/${converseUuid}`}
             kind="subtle"
