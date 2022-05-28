@@ -15,6 +15,7 @@ const Input = styled.input`
   width: 270px;
   max-width: calc(100vw - 30px);
   box-sizing: border-box;
+  border-radius: 0;
 `
 
 const TextInput = props => {
