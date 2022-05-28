@@ -50,7 +50,9 @@ const CancelButton = styled(Button)`
   max-width: 100%;
 `
 
-const ConversationDelete = ({ conversation, dispatch }) => {
+const ConversationDelete = ({ conversation, login, dispatch }) => {
+  const { pair: { pub: loginPub } } = login
+  const isAdmin = conversation?.adminPub === loginPub
   const [isConfirming, setIsConfirming] = useState(false)
 
   const handleDelete = useCallback(() => {
@@ -72,7 +74,7 @@ const ConversationDelete = ({ conversation, dispatch }) => {
       <TrashIcon
         src={getStaticUrl('/icons/trash.svg')}
         title="Delete the conversation"
-        onClick={conversation?.adminPub ? handleDelete : handleConfirmDelete}
+        onClick={isAdmin ? handleDelete : handleConfirmDelete}
       />
       {isConfirming && (
         <RootPortal>

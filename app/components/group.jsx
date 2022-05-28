@@ -106,6 +106,7 @@ const Group = props => {
         {''}
         <ConversationDelete
           conversation={conversation}
+          login={login}
           dispatch={dispatch}
         />
       </PanelHeader>
@@ -127,6 +128,7 @@ const Group = props => {
         </>
         <ConversationDelete
           conversation={conversation}
+          login={login}
           dispatch={dispatch}
         />
       </PanelHeader>

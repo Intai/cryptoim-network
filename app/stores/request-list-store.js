@@ -20,6 +20,7 @@ import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
 import LoginStore from './login-store'
+import ContactListStore from './contact-list-store'
 import ConversationListStore from './conversation-list-store'
 import MessageListStore from './message-list-store'
 import RemovedListStore from './removed-list-store'
@@ -39,6 +40,7 @@ const appendRequest = ({
   request,
   requests,
   login,
+  contacts,
   conversations,
   messages,
   removed,
@@ -46,7 +48,7 @@ const appendRequest = ({
 }) => {
   const source = requests || []
   const { content, conversePub, nextPair } = request
-  const { adminPub } = content
+  const { adminPub, memberPubs } = content
 
   // ignore the request if it has been accepted or declined.
   if ((removed && removed[request.uuid])
@@ -61,7 +63,9 @@ const appendRequest = ({
       // if already accepted the group chat.
       find(whereEq({ conversePub, rootPair: nextPair }), conversations)
         // and ignore duplications.
-        || find(propEq('conversePub', conversePub), source))
+        || find(propEq('conversePub', conversePub), source)
+        // or there is no one recognised in the group.
+        || (contacts && !find(({ pub }) => memberPubs.indexOf(pub) >= 0, contacts)))
     ) {
       // don't need to ask again.
       dispatch(RequestAction.declineRequest(request))
@@ -135,12 +139,13 @@ const whenReceive = when(
   isAction(ActionTypes.REQUEST_APPEND),
   converge(mergeDeepRight, [
     identity,
-    ({ state, action: { message }, login, conversationList, messageList, removedList, dispatch }) => ({
+    ({ state, action: { message }, login, contactList, conversationList, messageList, removedList, dispatch }) => ({
       state: {
         requests: appendRequest({
           request: message,
           requests: state?.requests,
           login,
+          contacts: contactList?.contacts,
           conversations: conversationList?.conversations,
           messages: messageList?.messages,
           removed: removedList?.removed,
@@ -210,6 +215,7 @@ export const getReducer = () => {
 export default createStore(
   StoreNames.REQUEST_LIST, getReducer, {
     login: LoginStore,
+    contactList: ContactListStore,
     conversationList: ConversationListStore,
     messageList: MessageListStore,
     removedList: RemovedListStore,

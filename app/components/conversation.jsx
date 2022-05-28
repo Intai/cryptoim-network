@@ -137,6 +137,7 @@ const Conversation = (props) => {
         {''}
         <ConversationDelete
           conversation={conversation}
+          login={login}
           dispatch={dispatch}
         />
       </PanelHeader>
@@ -155,6 +156,7 @@ const Conversation = (props) => {
         />
         <ConversationDelete
           conversation={conversation}
+          login={login}
           dispatch={dispatch}
         />
       </PanelHeader>
