@@ -22,7 +22,7 @@ import MessageListStore from '../stores/message-list-store'
 
 const Container = styled.div`
   flex: 1;
-  height: 100vh;
+  height: var(--vh, 100vh);
   display: flex;
   flex-direction: column;
   overflow: hidden;

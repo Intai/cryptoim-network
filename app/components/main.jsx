@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import { LocationAction, LocationStore } from 'bdux-react-router'
 import Login from './login'
 import PanelLeft from './panel-left'
 import PanelRight from './panel-right'
+import { canUseDOM } from '../utils/common-util'
 import * as LoginAction from '../actions/login-action'
 import LoginStore from '../stores/login-store'
 
@@ -23,6 +24,13 @@ const useBdux = createUseBdux({
 
 const Main = (props) => {
   const { state: { login, location } } = useBdux(props)
+
+  useEffect(() => {
+    if (canUseDOM()) {
+      const vh = window.innerHeight
+      document.documentElement.style.setProperty('--vh', `${vh}px`)
+    }
+  }, [])
 
   if (!login?.isAfterRecall) {
     return false

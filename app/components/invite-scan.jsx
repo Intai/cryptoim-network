@@ -7,7 +7,6 @@ import PanelHeader from './panel-header'
 import Button from './button'
 import Select from './select'
 import { alertBackground, secondaryBorder } from './color'
-import { canUseDOM } from '../utils/common-util'
 import { getRequestMessage } from '../utils/login-util'
 import * as ContactAction from '../actions/contact-action'
 import * as RequestAction from '../actions/request-action'
@@ -78,11 +77,6 @@ const InviteScan = props => {
   }, [dispatch, requestMessage])
 
   useEffect(() => {
-    if (canUseDOM()) {
-      const vh = window.innerHeight
-      document.documentElement.style.setProperty('--vh', `${vh}px`)
-    }
-
     // detect cameras.
     QrScanner.hasCamera().then(setHasCamera)
     QrScanner.listCameras().then(setCameras)
