@@ -8,6 +8,7 @@ import ConversationDelete from './conversation-delete'
 import TextInput from './text-input'
 import ContactList from './contact-list'
 import { fontLarge } from './typography'
+import { scrollbar } from './scrollbar'
 import { getStaticUrl } from '../utils/common-util'
 import { getGroupDefaultName, getGroupName } from '../utils/conversation-util'
 import { filterSortMessages } from '../utils/message-util'
@@ -29,6 +30,10 @@ const TitleText = styled.div`
   max-width: calc(100% - 28px);
   overflow: hidden;
   text-overflow: ellipsis;
+`
+
+const Scrollbar = styled.div`
+  ${scrollbar}
 `
 
 const GroupNameContainer = styled.div`
@@ -132,22 +137,24 @@ const Group = props => {
           dispatch={dispatch}
         />
       </PanelHeader>
-      <GroupNameContainer>
-        <GroupNameTitle>Group name</GroupNameTitle>
-        <TextInput
-          name="group"
-          value={conversation.name}
-          placeholder={getGroupDefaultName(login, contacts, conversation)}
-          autoComplete="off"
-          onKeyDown={handleGroupNameKeyDown}
-          onBlur={handleGroupNameBlur}
+      <Scrollbar>
+        <GroupNameContainer>
+          <GroupNameTitle>Group name</GroupNameTitle>
+          <TextInput
+            name="group"
+            value={conversation.name}
+            placeholder={getGroupDefaultName(login, contacts, conversation)}
+            autoComplete="off"
+            onKeyDown={handleGroupNameKeyDown}
+            onBlur={handleGroupNameBlur}
+          />
+        </GroupNameContainer>
+        <ContactList
+          checkedPubs={checkedPubs}
+          conversation={conversation}
+          nextPair={lastMessage?.nextPair || conversation.nextPair}
         />
-      </GroupNameContainer>
-      <ContactList
-        checkedPubs={checkedPubs}
-        conversation={conversation}
-        nextPair={lastMessage?.nextPair || conversation.nextPair}
-      />
+      </Scrollbar>
     </>
   )
 }
