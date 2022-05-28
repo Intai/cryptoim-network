@@ -1,4 +1,4 @@
-import { not, test } from 'ramda'
+import { not } from 'ramda'
 import React, { useCallback, useState } from 'react'
 import styled from 'styled-components'
 import { useBdux } from 'bdux/hook'
@@ -9,6 +9,7 @@ import PromoFeatures from './promo-features'
 import { primaryBackground, alertBackground, secondaryBorder } from './color'
 import { isBreakpointUp } from '../hooks/responsive'
 import { getStaticUrl } from '../utils/common-util'
+import { isStrongPassword } from '../utils/login-util'
 import * as LoginAction from '../actions/login-action'
 
 const Container = styled.div`
@@ -82,8 +83,6 @@ const SeparatorText = styled.div`
   padding: 0 6px;
 `
 
-const isStrong = test(/(?=^.{8,}$)(?=.*\d)(?=.*\W+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/)
-
 const getLoginLabel = login => {
   const isRegister = login?.isRegister
 
@@ -113,7 +112,7 @@ const Login = (props) => {
       dispatch(LoginAction.requirePassword())
     } else if (password !== confirm) {
       dispatch(LoginAction.requireConfirmation())
-    } else if (!isStrong(password)) {
+    } else if (!isStrongPassword(password)) {
       dispatch(LoginAction.requireStrong())
     } else {
       dispatch(LoginAction.login(alias, password))

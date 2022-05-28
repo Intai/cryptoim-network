@@ -7,6 +7,7 @@ import {
   create,
   createAnonymous,
   authoriseQrCode,
+  setPassword,
   hasUser,
   setUserName,
   leave,
@@ -19,7 +20,7 @@ export const init = () => mergeAll(
   }),
 
   fromCallback(callback => {
-    recall(({ alias, name, pair, err }) => {
+    recall(({ alias, name, auth, pair, err }) => {
       if (err || !alias) {
         callback({
           type: ActionTypes.LOGIN_RECALL_ERROR,
@@ -30,6 +31,7 @@ export const init = () => mergeAll(
           type: ActionTypes.LOGIN_SUCCESS,
           alias,
           name,
+          auth,
           pair,
         })
       }
@@ -58,18 +60,24 @@ export const requireAlias = () => ({
   err: 'Please enter an alias.',
 })
 
-export const requirePassword = () => ({
-  type: ActionTypes.LOGIN_ERROR,
+export const requirePassword = isUpdatingPassword => ({
+  type: isUpdatingPassword
+    ? ActionTypes.PASSWORD_ERROR
+    : ActionTypes.LOGIN_ERROR,
   err: 'Please enter a password.',
 })
 
-export const requireConfirmation = () => ({
-  type: ActionTypes.LOGIN_ERROR,
+export const requireConfirmation = isUpdatingPassword => ({
+  type: isUpdatingPassword
+    ? ActionTypes.PASSWORD_ERROR
+    : ActionTypes.LOGIN_ERROR,
   err: 'The password confirmation does not match.',
 })
 
-export const requireStrong = () => ({
-  type: ActionTypes.LOGIN_ERROR,
+export const requireStrong = isUpdatingPassword => ({
+  type: isUpdatingPassword
+    ? ActionTypes.PASSWORD_ERROR
+    : ActionTypes.LOGIN_ERROR,
   err: `The password must contain:
  • length >= 8
  • uppercase character
@@ -95,7 +103,7 @@ const adjustErrorMessage = (type, err) => {
 }
 
 export const login = (alias, password) => fromCallback(callback => {
-  create(alias, password, ({ alias, name, pair, err }) => {
+  create(alias, password, ({ alias, name, auth, pair, err }) => {
     if (err) {
       callback({
         type: ActionTypes.LOGIN_ERROR,
@@ -106,6 +114,7 @@ export const login = (alias, password) => fromCallback(callback => {
         type: ActionTypes.LOGIN_SUCCESS,
         alias,
         name,
+        auth,
         pair,
       })
     }
@@ -121,7 +130,7 @@ export const logout = () => {
 }
 
 export const scanQrCode = scanPair => fromCallback(callback => {
-  authoriseQrCode(scanPair, ({ alias, name, pair, err }) => {
+  authoriseQrCode(scanPair, ({ alias, name, auth, pair, err }) => {
     if (err) {
       callback({
         type: ActionTypes.LOGIN_ERROR,
@@ -132,6 +141,26 @@ export const scanQrCode = scanPair => fromCallback(callback => {
         type: ActionTypes.LOGIN_SUCCESS,
         alias,
         name,
+        auth,
+        pair,
+      })
+    }
+  })
+})
+
+export const updatePassword = password => fromCallback(callback => {
+  setPassword(password, ({ alias, name, auth, pair, err }) => {
+    if (err) {
+      callback({
+        type: ActionTypes.PASSWORD_ERROR,
+        err: adjustErrorMessage('password', err),
+      })
+    } else {
+      callback({
+        type: ActionTypes.LOGIN_SUCCESS,
+        alias,
+        name,
+        auth,
         pair,
       })
     }
@@ -139,7 +168,7 @@ export const scanQrCode = scanPair => fromCallback(callback => {
 })
 
 export const skip = () => fromBinder(sink => {
-  createAnonymous(({ alias, name, pair, err }) => {
+  createAnonymous(({ alias, name, auth, pair, err }) => {
     if (err) {
       sink({
         type: ActionTypes.LOGIN_ERROR,
@@ -151,6 +180,7 @@ export const skip = () => fromBinder(sink => {
         type: ActionTypes.LOGIN_SUCCESS,
         alias,
         name,
+        auth,
         pair,
       })
     }

@@ -1,4 +1,4 @@
-import { juxt, once, T } from 'ramda'
+import { juxt, once, test, T } from 'ramda'
 import { Sea, getGun, gunOnce } from './gun-util'
 
 export const getAuthPair = (() => {
@@ -52,16 +52,18 @@ export const recall = cb => {
     getAuthUser().on(gunOnce(T, data => {
       getAuthPair(pair => {
         if (data) {
-          const { alias, name } = data
+          const { alias, name, auth } = data
           cb({
             alias: alias || getAuthUser().is.alias || null,
             name: name || null,
+            auth,
             pair,
           })
         } else {
           cb({
             alias: getAuthUser().is.alias,
             name: null,
+            auth: null,
             pair,
           })
         }
@@ -138,6 +140,18 @@ export const createAnonymous = cb => {
   })
 }
 
+export const setPassword = (password, cb) => {
+  getAuthUser().auth(getAuthPair(), ({ err }) => {
+    if (err) {
+      cb({ err })
+    } else {
+      recall(cb)
+    }
+  }, {
+    change: password,
+  })
+}
+
 export const setUserName = name => {
   getAuthUser()
     .get('name')
@@ -161,3 +175,5 @@ export const getGroupRequestMessage = ({ alias, name, pair: { pub } }, names) =>
   const memberNames = [loginName, ...names]
   return `Group chat ${memberNames.join(', ')}`
 }
+
+export const isStrongPassword = test(/(?=^.{8,}$)(?=.*\d)(?=.*\W+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/)

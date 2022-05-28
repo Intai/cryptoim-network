@@ -66,17 +66,30 @@ const whenAuthError = when(
   ])
 )
 
+const whenPasswordError = when(
+  isAction(ActionTypes.PASSWORD_ERROR),
+  converge(mergeDeepRight, [
+    identity,
+    ({ action: { err } }) => ({
+      state: {
+        err,
+      },
+    }),
+  ])
+)
+
 const whenSuccess = when(
   isAction(ActionTypes.LOGIN_SUCCESS),
   converge(mergeDeepRight, [
     identity,
-    ({ action: { alias, name, pair } }) => ({
+    ({ action: { alias, name, auth, pair } }) => ({
       state: {
         isAuthenticated: !!pair,
         isAfterRecall: true,
         err: null,
         alias,
         name,
+        auth,
         pair,
       },
     }),
@@ -119,6 +132,7 @@ export const getReducer = () => {
       .map(whenCheckAlias)
       .map(whenRecallError)
       .map(whenAuthError)
+      .map(whenPasswordError)
       .map(whenSuccess)
       .map(whenRename)
       .map(whenLogout)

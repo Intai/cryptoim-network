@@ -5,6 +5,7 @@ export default Common.createObjOfConsts([
   'LOGIN_CHECK_ALIAS',
   'LOGIN_RECALL_ERROR',
   'LOGIN_ERROR',
+  'PASSWORD_ERROR',
   'LOGIN_SUCCESS',
   'LOGIN_RENAME',
   'LOGOUT',
