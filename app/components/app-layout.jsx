@@ -10,7 +10,7 @@ const Container = styled.div`
   ${primaryBackground}
   ${fontSans}
   ${fontNormal}
-  min-height: 100vh;
+  min-height: var(--vh, 100vh);
 `
 
 const AppLayout = () => (

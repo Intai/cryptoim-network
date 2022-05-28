@@ -45,7 +45,7 @@ const LoginContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: var(--vh, 100vh);
 `
 
 const Logo = styled.img`
