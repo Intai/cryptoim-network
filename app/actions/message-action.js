@@ -26,6 +26,7 @@ const getNotificationMessage = (contact, conversation) => {
 
 export const notifyNewMessage = (contact, conversation, message) => {
   if (canUseDOM()
+    && window.Notification
     && typeof message.content === 'string'
     && Notification.permission === 'granted') {
     const title = getNotificationMessage(contact, conversation)
