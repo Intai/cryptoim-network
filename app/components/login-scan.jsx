@@ -49,9 +49,9 @@ const LoginScan = (props) => {
 
       // start scanning and keep a reference to detroy when unmounting.
       qrScannerRef.current = qrScanner
-      qrScanner.start().catch(() => {
-        setIsBlocked(true)
-      })
+      qrScanner.start()
+        .then(() => QrScanner.listCameras().then(setCameras))
+        .catch(() => setIsBlocked(true))
     }
   }, [dispatch])
 
