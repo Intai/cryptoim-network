@@ -32,12 +32,14 @@ const AliasTextInput = styled.input`
   ${fontSans}
   border: 0;
   outline: 0;
+  padding: 1px 2px;
   display: inline-block;
   max-width: calc(100% - 60px);
   width: 100%;
   font-size: 30px;
   margin: 18px 2px 1.5px 13px;
   box-sizing: border-box;
+  border-radius: 0;
 `
 
 const KeyIcon = styled.img`
