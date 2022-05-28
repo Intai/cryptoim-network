@@ -1,10 +1,11 @@
 import React from 'react'
 import styled from 'styled-components'
 import { primaryButton, secondaryButton } from './color'
-import { fontBold } from './typography'
+import { fontBold, fontSans } from './typography'
 
 const Primary = styled.button`
   ${primaryButton}
+  ${fontSans}
   ${fontBold}
   display: block;
   border: 0;
@@ -14,11 +15,13 @@ const Primary = styled.button`
   width: 270px;
   max-width: calc(100vw - 30px);
   box-sizing: border-box;
+  font-size: 13px;
   cursor: pointer;
 `
 
 const Secondary = styled.button`
   ${secondaryButton}
+  ${fontSans}
   ${fontBold}
   display: block;
   outline: 0;
@@ -27,6 +30,7 @@ const Secondary = styled.button`
   width: 270px;
   max-width: calc(100vw - 30px);
   box-sizing: border-box;
+  font-size: 13px;
   cursor: pointer;
 `
 
