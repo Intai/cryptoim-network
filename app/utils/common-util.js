@@ -13,6 +13,13 @@ export const canUseDOM = once(() => !!(
     && window.document.createElement
 ))
 
+export const canUseNotification = once(() => (
+  canUseDOM()
+    && 'Notification' in window
+    && 'serviceWorker' in navigator
+    && 'PushManager' in window
+))
+
 const getEnv = () => (
   canUseDOM()
     ? window.env

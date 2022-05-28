@@ -9,7 +9,7 @@ import ConversationList from './conversation-list'
 import { secondaryBackground } from './color'
 import { scrollbar } from './scrollbar'
 import { useResponsive } from '../hooks/responsive'
-import { canUseDOM } from '../utils/common-util'
+import { canUseNotification } from '../utils/common-util'
 import * as LoginAction from '../actions/login-action'
 
 const Container = styled.div`
@@ -61,7 +61,7 @@ const PanelLeftLayout = props => {
         <ConversationList />
       </Scrollbar>
 
-      {canUseDOM() && Notification.permission === 'default' && (
+      {canUseNotification() && Notification.permission === 'default' && (
         <NotifButton
           type="button"
           kind="secondary"

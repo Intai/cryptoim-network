@@ -7,7 +7,7 @@ import {
 } from 'baconjs'
 import { LocationAction } from 'bdux-react-router'
 import ActionTypes from './action-types'
-import { canUseDOM, getStaticUrl } from '../utils/common-util'
+import { canUseNotification, getStaticUrl } from '../utils/common-util'
 import {
   sendNextMessage,
   expireConversationMessage,
@@ -25,8 +25,7 @@ const getNotificationMessage = (contact, conversation) => {
 }
 
 export const notifyNewMessage = (contact, conversation, message) => {
-  if (canUseDOM()
-    && window.Notification
+  if (canUseNotification()
     && typeof message.content === 'string'
     && Notification.permission === 'granted') {
     const title = getNotificationMessage(contact, conversation)
