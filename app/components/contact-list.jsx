@@ -18,6 +18,7 @@ const Container = styled.div`
   max-width: 100%;
   width: 975px;
   margin: 0 auto;
+  padding-bottom: 15px;
 `
 
 const Title = styled.div`
