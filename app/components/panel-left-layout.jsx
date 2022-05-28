@@ -13,11 +13,12 @@ import { canUseNotification } from '../utils/common-util'
 import * as LoginAction from '../actions/login-action'
 
 const Container = styled.div`
+  ${scrollbar}
   ${secondaryBackground}
   flex: 0 0 340px;
   max-width: 100vw;
   height: var(--vh, 100vh);
-  overflow: hidden;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   ${({ isMdDown }) => isMdDown && 'flex: 1;'}
@@ -26,6 +27,7 @@ const Container = styled.div`
 const Scrollbar = styled.div`
   ${scrollbar}
   flex: 1;
+  min-height: 145px;
 `
 
 const NotifButton = styled(Button)`
