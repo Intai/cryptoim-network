@@ -32,7 +32,7 @@ export const notifyNewMessage = (contact, conversation, message) => {
     if (title) {
       return fromCallback(callback => {
         const notification = new Notification(title, {
-          tag: message.uuid,
+          tag: conversation.uuid,
           body: message.content,
           icon: getStaticUrl('/favicon/favicon-32x32.png'),
         })
