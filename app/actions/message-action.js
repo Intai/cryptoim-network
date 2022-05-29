@@ -17,12 +17,15 @@ const notificationCache = []
 
 const getNotificationMessage = (contact, conversation) => {
   if (conversation.name) {
-    return `New message in group ${conversation.name}`
+    return conversation.name
   }
   if (contact) {
-    const { alias, name } = contact
-    return `New message from ${name || alias}`
+    const contactName = contact.name || contact.alias
+    if (contactName) {
+      return contactName
+    }
   }
+  return 'New message'
 }
 
 const getServiceWorker = async (conversation, message) => {
@@ -44,21 +47,21 @@ export const notifyNewMessage = (contact, conversation, message) => {
   if (canUseNotification()
     && typeof message.content === 'string'
     && Notification.permission === 'granted') {
-    const title = getNotificationMessage(contact, conversation)
-    if (title) {
-      getServiceWorker(conversation, message).then(registration => {
-        if (registration) {
-          const notification = {
-            tag: conversation.uuid,
-            body: message.content,
-            icon: getStaticUrl('/favicon/favicon-32x32.png'),
-            timestamp: message.timestamp,
-          }
-          notificationCache.push(notification)
-          registration.showNotification(title, notification)
+    getServiceWorker(conversation, message).then(registration => {
+      if (registration) {
+        const notification = {
+          tag: conversation.uuid,
+          body: message.content,
+          icon: getStaticUrl('/favicon/favicon-32x32.png'),
+          timestamp: message.timestamp,
         }
-      })
-    }
+        notificationCache.push(notification)
+        registration.showNotification(
+          getNotificationMessage(contact, conversation),
+          notification
+        )
+      }
+    })
   }
 }
 
