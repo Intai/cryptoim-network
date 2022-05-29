@@ -114,7 +114,7 @@ const whenAppendMessage = when(
     const { conversations, selected } = state
     const { content, fromPub, timestamp } = message
     const { pair: { pub: loginPub } } = login
-    const conversation = selected || find(isMessageInConversation(loginPub, message), conversations)
+    const conversation = find(isMessageInConversation(loginPub, message), conversations)
 
     // if the message is in the currently selected conversation.
     if (selected && isMessageInConversation(loginPub, message)(selected)) {
