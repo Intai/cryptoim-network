@@ -17,7 +17,6 @@ export const canUseNotification = once(() => (
   canUseDOM()
     && 'Notification' in window
     && 'serviceWorker' in navigator
-    && 'PushManager' in window
 ))
 
 const getEnv = () => (

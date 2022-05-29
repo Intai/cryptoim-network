@@ -1,11 +1,10 @@
-import { findLast } from 'ramda'
+import { find, findLast } from 'ramda'
 import {
   fromBinder,
   fromCallback,
   mergeAll,
   once,
 } from 'baconjs'
-import { LocationAction } from 'bdux-react-router'
 import ActionTypes from './action-types'
 import { canUseNotification, getStaticUrl } from '../utils/common-util'
 import {
@@ -13,6 +12,8 @@ import {
   expireConversationMessage,
   getExpiredConversationMessage,
 } from '../utils/conversation-util'
+
+const notificationCache = []
 
 const getNotificationMessage = (contact, conversation) => {
   if (conversation.name) {
@@ -24,24 +25,38 @@ const getNotificationMessage = (contact, conversation) => {
   }
 }
 
+const getServiceWorker = async (conversation, message) => {
+  const { uuid: tag } = conversation
+  const { timestamp } = message
+  const registration = await navigator.serviceWorker.ready
+  const notifications = [await registration.getNotifications(), ...notificationCache]
+
+  if (!find(
+    // skip if already notified.
+    notification => tag === notification.tag && timestamp <= notification.timestamp,
+    notifications
+  )) {
+    return registration
+  }
+}
+
 export const notifyNewMessage = (contact, conversation, message) => {
   if (canUseNotification()
     && typeof message.content === 'string'
     && Notification.permission === 'granted') {
     const title = getNotificationMessage(contact, conversation)
     if (title) {
-      return fromCallback(callback => {
-        const notification = new Notification(title, {
-          tag: conversation.uuid,
-          body: message.content,
-          icon: getStaticUrl('/favicon/favicon-32x32.png'),
-        })
-
-        notification.addEventListener('click', () => {
-          window.focus()
-          notification.close()
-          callback(LocationAction.push(`/conversation/${conversation.uuid}`))
-        })
+      getServiceWorker(conversation, message).then(registration => {
+        if (registration) {
+          const notification = {
+            tag: conversation.uuid,
+            body: message.content,
+            icon: getStaticUrl('/favicon/favicon-32x32.png'),
+            timestamp: message.timestamp,
+          }
+          notificationCache.push(notification)
+          registration.showNotification(title, notification)
+        }
       })
     }
   }

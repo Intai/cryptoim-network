@@ -49,3 +49,26 @@ self.addEventListener('fetch', event => {
       }),
   )
 })
+
+self.addEventListener('notificationclick', event => {
+  const { notification } = event
+  const url = `/conversation/${notification.tag}`
+
+  // close the notification.
+  notification.close()
+  // search through tabs.
+  event.waitUntil(self.clients.matchAll({ type: 'window' })
+    .then(clientList => {
+      // if there is at least one tab.
+      if (clientList.length > 0) {
+        // bring the first tab into focus and navigate to the conversation.
+        const client = clientList[0]
+        client.focus()
+        client.navigate(url)
+      } else {
+        // open the conversation in a new tab.
+        self.clients.openWindow(url)
+      }
+    })
+  )
+})
