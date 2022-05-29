@@ -396,6 +396,11 @@ export const updateConversation = (converseUuid, update) => {
             ...data,
             ...update,
           }
+
+          // lastTimestamp can not go backward.
+          if ('lastTimestamp' in update && data.lastTimestamp > update.lastTimestamp) {
+            conversation.lastTimestamp = data.lastTimestamp
+          }
           // encrypt the updated conversation and put it back.
           Sea.encrypt(conversation, getAuthPair()).then(encrypted => {
             converseNode.put(encrypted)
