@@ -4,7 +4,6 @@ import { primaryBackground } from './color'
 import { fontSans, fontNormal } from './typography'
 import theme from './theme'
 import Main from './main'
-import Head from './head'
 
 const Container = styled.div`
   ${primaryBackground}
@@ -17,7 +16,6 @@ const AppLayout = () => (
   <ThemeProvider theme={theme}>
     <Container>
       <Main />
-      <Head />
     </Container>
   </ThemeProvider>
 )
