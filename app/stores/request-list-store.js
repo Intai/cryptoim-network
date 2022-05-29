@@ -6,13 +6,13 @@ import {
   find,
   findIndex,
   identity,
+  insert,
   mergeDeepRight,
   path,
   pathEq,
   prop,
   propEq,
   remove,
-  sort,
   when,
   whereEq,
 } from 'ramda'
@@ -32,9 +32,22 @@ const isAction = pathEq(
   ['action', 'type'],
 )
 
-const compareRequests = (a, b) => (
-  (b.timestamp || 0) - (a.timestamp || 0)
+const getTimestamp = request => (
+  request.timestamp || 0
 )
+
+const isSmallerTimestamp = timestamp => request => (
+  getTimestamp(request) <= timestamp
+)
+
+const insertRequest = (request, requests) => {
+  const timestamp = getTimestamp(request)
+  let index = findIndex(isSmallerTimestamp(timestamp), requests)
+  if (index < 0) {
+    index = requests.length
+  }
+  return insert(index, request, requests)
+}
 
 const appendRequest = ({
   request,
@@ -101,7 +114,7 @@ const appendRequest = ({
     }
   }
 
-  return sort(compareRequests, source.concat(request))
+  return insertRequest(request, source)
 }
 
 const updateRequests = ({
