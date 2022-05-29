@@ -4,33 +4,47 @@ import {
   find,
   findIndex,
   identity,
+  insert,
   mergeDeepRight,
   pathEq,
   prop,
   propEq,
   remove,
-  update,
   when,
 } from 'ramda'
 import { Bus } from 'baconjs'
 import { createStore } from 'bdux/store'
 import StoreNames from './store-names'
+import { getContactName } from '../utils/contact-util'
 import ActionTypes from '../actions/action-types'
 
 const isAction = pathEq(
   ['action', 'type'],
 )
 
+const isLargerContactName = contactName => contact => (
+  getContactName(contact)?.toLowerCase() > contactName
+)
+
+const insertContact = (contact, contacts) => {
+  const contactName = getContactName(contact)?.toLowerCase()
+  let index = findIndex(isLargerContactName(contactName), contacts)
+  if (index < 0) {
+    index = contacts.length
+  }
+  return insert(index, contact, contacts)
+}
+
 const append = (contact, contacts) => {
   const source = contacts || []
   const current = find(propEq('pub', contact.pub), source)
 
   if (!current) {
-    return source.concat(contact)
+    return insertContact(contact, source)
   }
   if (!equals(current, contact)) {
     const index = source.indexOf(current)
-    return update(index, contact, source)
+    return insertContact(contact, remove(index, 1, source))
   }
   return source
 }
