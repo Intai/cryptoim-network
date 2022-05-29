@@ -124,15 +124,12 @@ const whenAppendMessage = when(
         // update the lastTimestamp in the conversation.
         dispatch(ConversationAction.updateLastTimestamp(selected, timestamp))
       }
-    } else {
+    } else if (conversation && conversation.lastTimestamp
+      // if the message is newer than the lastTimestamp in the conversation.
+      && timestamp > conversation.lastTimestamp) {
+      // create a browser notification.
       const sender = find(propEq('pub', fromPub), contactList.contacts)
-
-      if (conversation
-        // if the message is newer than the lastTimestamp in the conversation.
-        && (!conversation.lastTimestamp || timestamp > conversation.lastTimestamp)) {
-        // create a browser notification.
-        dispatch(MessageAction.notifyNewMessage(sender, conversation, message))
-      }
+      dispatch(MessageAction.notifyNewMessage(sender, conversation, message))
     }
 
     if (content.type === 'renewGroup' && conversation
