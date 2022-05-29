@@ -144,7 +144,7 @@ const sendMessage = (user, fromPair, conversePub, content, cb) => {
             .get(`${user.pub}-${get15days(message.timestamp)}-#${hash}`)
             .put(json)
 
-          cb({ message })
+          cb && cb({ message })
         })
     })
 }
@@ -170,13 +170,13 @@ const whenUser = user => (
 
 export const sendNextMessageToUser = (nextPair, toPub, conversePub, content, cb) => {
   if (!toPub) {
-    cb({ err: 'Invalid contact.' })
+    cb && cb({ err: 'Invalid contact.' })
     return
   }
 
   getGun().user(toPub).on(gunOnce(whenUser, user => {
     if (!user) {
-      cb({ err: 'Invalid contact.' })
+      cb && cb({ err: 'Invalid contact.' })
     } else {
       encryptData(user, nextPair, content)
         .then(encrypted => {
@@ -199,13 +199,13 @@ export const sendNextMessageToUser = (nextPair, toPub, conversePub, content, cb)
 
 export const sendMessageToUser = (toPub, conversePub, content, cb) => {
   if (!toPub) {
-    cb({ err: 'Invalid contact.' })
+    cb && cb({ err: 'Invalid contact.' })
     return
   }
 
   getGun().user(toPub).on(gunOnce(whenUser, user => {
     if (!user) {
-      cb({ err: 'Invalid contact.' })
+      cb && cb({ err: 'Invalid contact.' })
     } else {
       sendMessage(
         // to the other user.
