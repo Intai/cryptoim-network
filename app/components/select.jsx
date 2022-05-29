@@ -9,7 +9,7 @@ const Select = styled.select`
   display: block;
   border: 0;
   outline: 0;
-  padding: 10px;
+  padding: 10px 35px 10px 10px;
   margin: 0 0 15px;
   width: 270px;
   max-width: calc(100vw - 30px);
