@@ -1,7 +1,8 @@
 import { not } from 'ramda'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { useBdux } from 'bdux/hook'
+import { LocationAction } from 'bdux-react-router'
 import TextInput from './text-input'
 import Button from './button'
 import LoginScan from './login-scan'
@@ -132,6 +133,11 @@ const Login = (props) => {
   const handleSkip = useCallback(() => {
     dispatch(LoginAction.skip())
   }, [dispatch])
+
+  useEffect(() => {
+    // clean up the url to avoid confusion after login.
+    LocationAction.push('/')
+  }, [])
 
   if (isScanning) {
     return (
