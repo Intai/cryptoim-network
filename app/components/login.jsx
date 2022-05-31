@@ -160,7 +160,7 @@ const Login = (props) => {
             kind={hasRadata ? 'primary' : 'secondary'}
             onClick={handleToggleScan}
           >
-            {'Scan QR code'}
+            {'Scan / Open QR code'}
           </Button>
 
           <Button
