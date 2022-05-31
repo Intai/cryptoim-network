@@ -4,6 +4,7 @@ import QrScanner from 'qr-scanner'
 import { useBdux } from 'bdux/hook'
 import Button from './button'
 import Select from './select'
+import FileInput from './file-input'
 import { alertBackground, secondaryBorder } from './color'
 import { jsonParse } from '../utils/common-util'
 import * as LoginAction from '../actions/login-action'
@@ -12,7 +13,7 @@ const Video = styled.video`
   ${secondaryBorder}
   border: 1px solid;
   width: calc(100vw - 30px);
-  max-height: calc(var(--vh, 100vh) - 157px);
+  max-height: calc(var(--vh, 100vh) - 210px);
   margin: 15px 0 20px;
   position: relative;
 `
@@ -69,13 +70,33 @@ const LoginScan = (props) => {
     }
   }, [])
 
-  const handleChangeCamera = useCallback((e) => {
+  const handleChangeCamera = useCallback(e => {
     const { current: qrScanner } = qrScannerRef
     if (qrScanner) {
       // select a different camera.
       qrScanner.setCamera(e.target.value)
     }
   }, [])
+
+  const handleOpenFile = useCallback(e => {
+    const { files } = e.target
+    if (files.length > 0) {
+      QrScanner.scanImage(files[0])
+        .then(result => {
+          const pair = jsonParse(result)
+          if (pair) {
+            // try to login by the pair in the qr code image.
+            dispatch(LoginAction.scanQrCode(pair))
+          } else {
+            dispatch(LoginAction.requireValidQrCode())
+          }
+        })
+        .catch(() => {
+          // doesn't recognise the qr code image.
+          dispatch(LoginAction.requireValidQrCode())
+        })
+    }
+  }, [dispatch])
 
   const hasCameraNotBlocked = hasCamera && !isBlocked
   const errorMessage = login?.err
@@ -98,6 +119,10 @@ const LoginScan = (props) => {
             ))}
           </Select>
         )}
+
+        <FileInput onChange={handleOpenFile}>
+          {'Open QR code image'}
+        </FileInput>
 
         <Button
           type="button"

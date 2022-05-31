@@ -52,13 +52,20 @@ export const recall = cb => {
     getAuthUser().on(gunOnce(T, data => {
       getAuthPair(pair => {
         if (data) {
-          const { alias, name, auth } = data
+          const { name, auth, pub } = data
+          const alias = data.alias || getAuthUser().is.alias || null
           cb({
-            alias: alias || getAuthUser().is.alias || null,
+            alias,
             name: name || null,
             auth,
             pair,
           })
+
+          // if there is no name specified,
+          // and alias is just the public key.
+          if (!name && alias && alias === pub) {
+            getAuthUser().get('name').put('Anonymous')
+          }
         } else {
           cb({
             alias: getAuthUser().is.alias,
@@ -106,6 +113,8 @@ export const authoriseQrCode = (pair, cb) => {
     if (err) {
       cb({ err })
     } else {
+      getAuthUser().get('pub').put(pair.pub)
+      getAuthUser().get('epub').put(pair.epub)
       recall(cb)
     }
   })

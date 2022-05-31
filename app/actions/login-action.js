@@ -86,6 +86,11 @@ export const requireStrong = isUpdatingPassword => ({
  • !"#$%&'()*+,-./:;<=>?@[]^_\`{|}~`,
 })
 
+export const requireValidQrCode = () => ({
+  type: ActionTypes.LOGIN_ERROR,
+  err: 'Invalid QR code.',
+})
+
 export const clearError = () => ({
   type: ActionTypes.LOGIN_ERROR,
   err: null,
