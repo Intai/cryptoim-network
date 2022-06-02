@@ -9,7 +9,6 @@ export default Common.createObjOfConsts([
   'LOGIN_SUCCESS',
   'LOGIN_RENAME',
   'LOGOUT',
-  'CONTACT_INIT',
   'CONTACT_APPEND',
   'CONTACT_APPEND_ERROR',
   'CONTACT_DELETE',

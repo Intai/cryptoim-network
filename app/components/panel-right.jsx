@@ -52,10 +52,10 @@ const useBdux = createUseBdux({
 
 const PanelRight = props => {
   const { location } = props
-  const { state: { contactList, conversationList, messageList } } = useBdux(props)
+  const { state: { conversationList, messageList } } = useBdux(props)
 
   // wait for contacts and conversations are initialised.
-  return contactList && conversationList && messageList && (
+  return conversationList && messageList && (
     <Router location={updateRouterLocation(location)}>
       <Routes>
         <Route

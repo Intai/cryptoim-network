@@ -57,26 +57,13 @@ const removePublicKey = (pub, contacts) => {
     : remove(index, 1, source)
 }
 
-const whenInit = when(
-  isAction(ActionTypes.CONTACT_INIT),
-  converge(mergeDeepRight, [
-    identity,
-    ({ state }) => ({
-      state: {
-        contacts: state?.contacts || [],
-        err: null,
-      },
-    }),
-  ])
-)
-
 const whenAppend = when(
   isAction(ActionTypes.CONTACT_APPEND),
   converge(mergeDeepRight, [
     identity,
     ({ state, action: { contact } }) => ({
       state: {
-        contacts: append(contact, state?.contacts),
+        contacts: append(contact, state.contacts),
         err: null,
       },
     }),
@@ -101,7 +88,7 @@ const whenDelete = when(
     identity,
     ({ state, action: { pub } }) => ({
       state: {
-        contacts: removePublicKey(pub, state?.contacts),
+        contacts: removePublicKey(pub, state.contacts),
         err: null,
       },
     }),
@@ -126,7 +113,6 @@ export const getReducer = () => {
   return {
     input: reducerStream,
     output: reducerStream
-      .map(whenInit)
       .map(whenAppend)
       .map(whenAppendError)
       .map(whenDelete)
@@ -136,5 +122,12 @@ export const getReducer = () => {
 }
 
 export default createStore(
-  StoreNames.CONTACT_LIST, getReducer,
+  () => ({
+    name: StoreNames.CONTACT_LIST,
+    defaultValue: {
+      contacts: [],
+      err: null,
+    },
+  }),
+  getReducer,
 )

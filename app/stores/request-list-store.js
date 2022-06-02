@@ -158,7 +158,7 @@ const whenReceive = when(
           request: message,
           requests: state?.requests,
           login,
-          contacts: contactList?.contacts,
+          contacts: contactList.contacts,
           conversations: conversationList?.conversations,
           messages: messageList?.messages,
           removed: removedList?.removed,

@@ -1,4 +1,4 @@
-import { fromBinder, fromCallback, mergeAll, once } from 'baconjs'
+import { fromBinder, fromCallback } from 'baconjs'
 import ActionTypes from './action-types'
 import {
   getContact,
@@ -6,20 +6,14 @@ import {
   removeContact,
 } from '../utils/contact-util'
 
-export const init = () => mergeAll(
-  once({
-    type: ActionTypes.CONTACT_INIT,
-  }),
-
-  fromBinder(sink => (
-    getContact(contact => {
-      sink({
-        type: ActionTypes.CONTACT_APPEND,
-        contact,
-      })
+export const init = () => fromBinder(sink => (
+  getContact(contact => {
+    sink({
+      type: ActionTypes.CONTACT_APPEND,
+      contact,
     })
-  ))
-)
+  })
+))
 
 export const append = pubicKey => fromCallback(callback => {
   setContact(pubicKey, contact => {
