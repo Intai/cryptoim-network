@@ -49,27 +49,13 @@ const removeConversation = (conversation, conversations) => {
     : remove(index, 1, source)
 }
 
-const whenInit = when(
-  isAction(ActionTypes.CONVERSATION_INIT),
-  converge(mergeDeepRight, [
-    identity,
-    ({ state }) => ({
-      state: {
-        conversations: state?.conversations || [],
-        selected: null,
-        errors: {},
-      },
-    }),
-  ])
-)
-
 const whenAppend = when(
   isAction(ActionTypes.CONVERSATION_APPEND),
   converge(mergeDeepRight, [
     identity,
     ({ state, action: { conversation } }) => ({
       state: {
-        conversations: appendConversation(conversation, state?.conversations),
+        conversations: appendConversation(conversation, state.conversations),
       },
     }),
   ])
@@ -153,7 +139,7 @@ const whenRemove = when(
     identity,
     ({ state, action: { conversation } }) => ({
       state: {
-        conversations: removeConversation(conversation, state?.conversations),
+        conversations: removeConversation(conversation, state.conversations),
       },
     }),
   ])
@@ -211,7 +197,7 @@ const whenLoadExpired = when(
         conversations: appendConversation({
           ...conversation,
           nextPair: conversation.rootPair,
-        }, state?.conversations),
+        }, state.conversations),
       },
     }),
   ])
@@ -236,7 +222,6 @@ export const getReducer = () => {
   return {
     input: reducerStream,
     output: reducerStream
-      .map(whenInit)
       .map(whenAppend)
       .map(whenSelect)
       .map(whenAppendMessage)
@@ -251,7 +236,15 @@ export const getReducer = () => {
 }
 
 export default createStore(
-  StoreNames.CONVERSATION_LIST, getReducer, {
+  () => ({
+    name: StoreNames.CONVERSATION_LIST,
+    defaultValue: {
+      conversations: [],
+      selected: null,
+      errors: {},
+    },
+  }),
+  getReducer, {
     login: LoginStore,
     contactList: ContactListStore,
   }

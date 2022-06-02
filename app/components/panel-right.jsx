@@ -1,7 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Outlet } from 'react-router'
-import { createUseBdux } from 'bdux/hook'
 import {
   updateRouterLocation,
   Router,
@@ -16,9 +15,6 @@ import Invite from './invite'
 import InviteScan from './invite-scan'
 import InviteResult from './invite-result'
 import { useResponsive } from '../hooks/responsive'
-import ContactListStore from '../stores/contact-list-store'
-import ConversationListStore from '../stores/conversation-list-store'
-import MessageListStore from '../stores/message-list-store'
 
 const Container = styled.div`
   flex: 1;
@@ -44,18 +40,11 @@ const HomeForMdAndUp = () => {
   )
 }
 
-const useBdux = createUseBdux({
-  contactList: ContactListStore,
-  conversationList: ConversationListStore,
-  messageList: MessageListStore,
-})
-
 const PanelRight = props => {
   const { location } = props
-  const { state: { conversationList, messageList } } = useBdux(props)
 
   // wait for contacts and conversations are initialised.
-  return conversationList && messageList && (
+  return (
     <Router location={updateRouterLocation(location)}>
       <Routes>
         <Route

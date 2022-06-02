@@ -136,18 +136,6 @@ const removeRequest = (request, requests) => {
     : remove(index, 1, source)
 }
 
-const whenInit = when(
-  isAction(ActionTypes.CONVERSATION_INIT),
-  converge(mergeDeepRight, [
-    identity,
-    ({ state }) => ({
-      state: {
-        requests: state?.requests || [],
-      },
-    }),
-  ])
-)
-
 const whenReceive = when(
   isAction(ActionTypes.REQUEST_APPEND),
   converge(mergeDeepRight, [
@@ -156,12 +144,12 @@ const whenReceive = when(
       state: {
         requests: appendRequest({
           request: message,
-          requests: state?.requests,
+          requests: state.requests,
           login,
           contacts: contactList.contacts,
-          conversations: conversationList?.conversations,
-          messages: messageList?.messages,
-          removed: removedList?.removed,
+          conversations: conversationList.conversations,
+          messages: messageList.messages,
+          removed: removedList.removed,
           dispatch,
         }),
       },
@@ -176,8 +164,8 @@ const whenRemovedUpdate = when(
     ({ state, removedList }) => ({
       state: {
         requests: updateRequests({
-          requests: state?.requests,
-          removed: removedList?.removed,
+          requests: state.requests,
+          removed: removedList.removed,
         }),
       },
     }),
@@ -193,7 +181,7 @@ const whenAcceptDecline = when(
     identity,
     ({ state, action: { message } }) => ({
       state: {
-        requests: removeRequest(message, state?.requests),
+        requests: removeRequest(message, state.requests),
       },
     }),
   ])
@@ -216,7 +204,6 @@ export const getReducer = () => {
   return {
     input: reducerStream,
     output: reducerStream
-      .map(whenInit)
       .map(whenReceive)
       .map(whenAcceptDecline)
       .map(whenRemovedUpdate)
@@ -226,7 +213,13 @@ export const getReducer = () => {
 }
 
 export default createStore(
-  StoreNames.REQUEST_LIST, getReducer, {
+  () => ({
+    name: StoreNames.REQUEST_LIST,
+    defaultValue: {
+      requests: [],
+    },
+  }),
+  getReducer, {
     login: LoginStore,
     contactList: ContactListStore,
     conversationList: ConversationListStore,

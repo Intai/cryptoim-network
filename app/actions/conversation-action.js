@@ -1,7 +1,6 @@
 import {
   fromBinder,
   mergeAll,
-  once,
 } from 'baconjs'
 import ActionTypes from './action-types'
 import { appendConversationMessage } from './message-action'
@@ -20,10 +19,6 @@ import {
 } from '../utils/conversation-util'
 
 export const init = () => mergeAll(
-  once({
-    type: ActionTypes.CONVERSATION_INIT,
-  }),
-
   fromBinder(sink => (
     getRemovedRequests(uuids => {
       sink({

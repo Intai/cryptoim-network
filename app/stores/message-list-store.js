@@ -25,25 +25,13 @@ const appendMessage = (message, messages) => {
     : source.concat(message)
 }
 
-const whenInit = when(
-  isAction(ActionTypes.CONVERSATION_INIT),
-  converge(mergeDeepRight, [
-    identity,
-    ({ state }) => ({
-      state: {
-        messages: state?.messages || [],
-      },
-    }),
-  ])
-)
-
 const whenAppend = when(
   isAction(ActionTypes.MESSAGE_APPEND),
   converge(mergeDeepRight, [
     identity,
     ({ state, action: { message } }) => ({
       state: {
-        messages: appendMessage(message, state?.messages),
+        messages: appendMessage(message, state.messages),
       },
     }),
   ])
@@ -66,7 +54,6 @@ export const getReducer = () => {
   return {
     input: reducerStream,
     output: reducerStream
-      .map(whenInit)
       .map(whenAppend)
       .map(whenLogout)
       .map(prop('state')),
@@ -74,5 +61,11 @@ export const getReducer = () => {
 }
 
 export default createStore(
-  StoreNames.MESSAGE_LIST, getReducer,
+  () => ({
+    name: StoreNames.MESSAGE_LIST,
+    defaultValue: {
+      messages: [],
+    },
+  }),
+  getReducer,
 )

@@ -11,11 +11,13 @@ import * as ContactAction from '../actions/contact-action'
 import * as ConversationAction from '../actions/conversation-action'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
+import MessageListStore from '../stores/message-list-store'
 import RequestListStore from '../stores/request-list-store'
 
 const useBdux = createUseBdux({
   contactList: ContactListStore,
   conversationList: ConversationListStore,
+  messageList: MessageListStore,
   requestList: RequestListStore,
 }, [
   ContactAction.init,
@@ -24,10 +26,10 @@ const useBdux = createUseBdux({
 
 const PanelLeft = props => {
   const { location } = props
-  const { state: { conversationList } } = useBdux(props)
+  useBdux(props)
 
   // wait for contacts and conversations are initialised.
-  return conversationList && (
+  return (
     <Router location={updateRouterLocation(location)}>
       <Routes>
         <Route
