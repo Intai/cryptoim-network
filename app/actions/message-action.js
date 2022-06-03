@@ -57,7 +57,7 @@ export const notifyNewMessage = (contact, conversation, message) => {
           const notification = {
             tag: conversation.uuid,
             body: text,
-            icon: getStaticUrl('/favicon/favicon-32x32.png'),
+            icon: getStaticUrl('/favicon/android-chrome-192x192.png'),
             timestamp: message.timestamp,
           }
           notificationCache.push(notification)

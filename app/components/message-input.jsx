@@ -1,4 +1,4 @@
-import { append, forEach } from 'ramda'
+import { append, forEach, inc } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import React, { useCallback, useState } from 'react'
 import styled from 'styled-components'
@@ -51,8 +51,52 @@ const ImageIcon = styled.img`
   }
 `
 
+const adjustDimension = ({ width, height }) => {
+  if (width > height) {
+    return width > 2500
+      ? [2500, height * 2500 / width]
+      : [width, height]
+  }
+  return height > 2500
+    ? [width * 2500 / height, 2500]
+    : [width, height]
+}
+
+const getImageElement = (func, dataUrl) => {
+  const img = new Image()
+  img.onload = () => func(img)
+  img.src = dataUrl
+}
+
+const resizeImageElementToDataUrl = img => {
+  const [width, height] = adjustDimension(img)
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(img, 0, 0, width, height)
+
+  let dataUrl = canvas.toDataURL('image/webp')
+  if (dataUrl.indexOf('data:image/webp') < 0) {
+    // fallback to jpeg if webp is not supported.
+    dataUrl = canvas.toDataURL('image/jpeg')
+  }
+  return dataUrl
+}
+
+const getDataUrl = (func, file) => {
+  const reader = new FileReader()
+  reader.onloadend = () => {
+    getImageElement(element => {
+      func(resizeImageElementToDataUrl(element))
+    }, reader.result)
+  }
+  reader.readAsDataURL(file)
+}
+
 const MessageInput = ({ conversation, messages, dispatch }) => {
   const [images, setImages] = useState([])
+  const [version, setVersion] = useState(0)
 
   const handleSend = useCallback(e => {
     const formData = new FormData(e.target)
@@ -93,14 +137,17 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
     // read files to data urls.
     if (files.length > 0) {
       forEach(file => {
-        const reader = new FileReader()
-        reader.onloadend = () => setImages(append({
-          uuid: uuidv4(),
-          name: file.name,
-          src: reader.result,
-        }))
-        reader.readAsDataURL(file)
+        getDataUrl(dataUrl => {
+          setImages(append({
+            uuid: uuidv4(),
+            name: file.name,
+            src: dataUrl,
+          }))
+        }, file)
       }, files)
+
+      // increment verion to render a new file input.
+      setVersion(inc)
     }
   }, [])
 
@@ -119,6 +166,7 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
       />
 
       <ImageFileInput
+        key={version}
         accept="image/*"
         multiple
         onChange={handleAttachImage}
