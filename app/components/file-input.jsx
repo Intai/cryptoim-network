@@ -23,10 +23,12 @@ const Input = styled.input`
   display: none;
 `
 
-const FileInput = ({ className, children, onChange }) => (
+const FileInput = ({ className, accept, multiple, children, onChange }) => (
   <Label className={className}>
     <Input
       type="file"
+      accept={accept}
+      multiple={multiple}
       onChange={onChange}
     />
     {children}

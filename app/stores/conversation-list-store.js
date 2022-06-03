@@ -20,6 +20,7 @@ import ContactListStore from './contact-list-store'
 import ActionTypes from '../actions/action-types'
 import * as MessageAction from '../actions/message-action'
 import * as ConversationAction from '../actions/conversation-action'
+import MessageTypes from '../utils/message-types'
 
 const isAction = pathEq(
   ['action', 'type'],
@@ -118,7 +119,7 @@ const whenAppendMessage = when(
       dispatch(MessageAction.notifyNewMessage(sender, conversation, message))
     }
 
-    if (content.type === 'renewGroup' && conversation
+    if (content.type === MessageTypes.RENEW_GROUP && conversation
       // if the renewGroup message is newer than the groupTimestamp in the conversation.
       && (!conversation.groupTimestamp || timestamp > conversation.groupTimestamp)) {
       // update groupTimestamp in the conversation,

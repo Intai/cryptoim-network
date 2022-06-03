@@ -1,8 +1,10 @@
 import { find, propEq } from 'ramda'
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
+import MessageInputImages from './message-images'
 import { tertiaryBackground, secondaryText } from './color'
 import { fontSmall } from './typography'
+import { isMessageVisible, getMessageText, getMessageImages } from '../utils/message-util'
 
 const MessageListItem = styled.li`
   ${({ isMine }) => isMine && 'text-align: right;'}
@@ -54,18 +56,20 @@ const getLocalDateString = timestamp => new Date(timestamp)
   })
 
 const Message = ({ login, contacts, message, prev }) => {
-  const { content, fromPub, timestamp } = message
+  const { fromPub, timestamp } = message
   const { pair: { pub: loginPub } } = login
   const isMine = fromPub === loginPub
-  const isSameContact = prev?.fromPub === fromPub && typeof prev?.content === 'string'
+  const isSameContact = prev?.fromPub === fromPub && prev && isMessageVisible(prev)
+  const images = getMessageImages(message)
 
   const contact = useMemo(() => (
     find(propEq('pub', fromPub), contacts)
   ), [contacts, fromPub])
 
-  if (typeof content !== 'string') {
+  if (!isMessageVisible(message)) {
     return false
   }
+
   return (
     <MessageListItem isMine={isMine}>
       {!isSameContact && (
@@ -78,7 +82,8 @@ const Message = ({ login, contacts, message, prev }) => {
         isMine={isMine}
         isSameContact={isSameContact}
       >
-        {content}
+        <MessageInputImages images={images} />
+        {getMessageText(message)}
         <Timestamp>{getLocalDateString(timestamp)}</Timestamp>
       </Content>
     </MessageListItem>

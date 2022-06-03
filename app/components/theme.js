@@ -1,13 +1,5 @@
 export default {
   color: {
-    grey: '#444',
-    offgrey: '#888',
-    offwhite: '#eee',
-    white: '#fff',
-    lavender: '#826882',
-    offLavender: '#cfbace',
-    alert: '#e74c3c',
-
     primaryBackground: '#202124',
     secondaryBackground: '#2a2b2e',
     tertiaryBackground: '#303030',

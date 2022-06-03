@@ -6,6 +6,7 @@ import { primaryBackground, secondaryText } from './color'
 import { getStaticUrl } from '../utils/common-util'
 import { getContactName } from '../utils/contact-util'
 import { getGroupName } from '../utils/conversation-util'
+import { isMessageVisible } from '../utils/message-util'
 
 const ListItem = styled.li`
   display: block;
@@ -40,10 +41,10 @@ const GroupIcon = styled.img`
 `
 
 const isNewMessageInConversation = (loginPub, conversePub, lastTimestamp) => message => {
-  const { content, conversePub: messageConversePub, fromPub, timestamp } = message
+  const { conversePub: messageConversePub, fromPub, timestamp } = message
 
-  // count only text messages.
-  return typeof content === 'string'
+  // count only visible messages.
+  return isMessageVisible(message)
     // if the message is newer.
     && (!lastTimestamp || timestamp > lastTimestamp)
     // message from myself in the conversation.

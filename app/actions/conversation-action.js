@@ -4,6 +4,7 @@ import {
 } from 'baconjs'
 import ActionTypes from './action-types'
 import { appendConversationMessage } from './message-action'
+import MessageTypes from '../utils/message-types'
 import { Sea } from '../utils/gun-util'
 import {
   getConversation,
@@ -46,7 +47,7 @@ export const init = () => mergeAll(
   fromBinder(sink => (
     getMyMessage(message => {
       const { type } = message.content
-      if (type === 'request') {
+      if (type === MessageTypes.REQUEST) {
         sink({
           type: ActionTypes.REQUEST_APPEND,
           message,
@@ -113,7 +114,7 @@ export const renewGroupMembers = ({
     // send group requests to new members.
     addedPubs.map(userPub => {
       sendMessageToUser(userPub, conversePub, {
-        type: 'request',
+        type: MessageTypes.REQUEST,
         adminPub: loginPub,
         memberPubs,
         nextPair: targetPair,
@@ -133,7 +134,7 @@ export const renewGroupMembers = ({
       // send the new pair to remaining members.
       remainingPubs.concat(loginPub).forEach(userPub => {
         sendNextMessageToUser(nextPair, userPub, conversePub, {
-          type: 'renewGroup',
+          type: MessageTypes.RENEW_GROUP,
           renewPair,
         })
       })

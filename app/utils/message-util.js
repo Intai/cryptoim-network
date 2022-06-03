@@ -1,4 +1,5 @@
 import { filter, last, pipe, prop, sortBy } from 'ramda'
+import MessageTypes from './message-types'
 
 const sortByTimestamp = sortBy(prop('timestamp'))
 
@@ -27,3 +28,18 @@ export const getNextPair = (conversation, messages) => {
   }
   return lastNextPair || converseNextPair
 }
+
+export const isMessageVisible = message => (
+  typeof message.content === 'string'
+    || message.content.type === MessageTypes.IMAGES
+)
+
+export const getMessageText = message => (
+  typeof message.content === 'string'
+    ? message.content
+    : message.content.text
+)
+
+export const getMessageImages = message => (
+  message.content.images
+)

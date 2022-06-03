@@ -6,12 +6,14 @@ import {
   once,
 } from 'baconjs'
 import ActionTypes from './action-types'
+import MessageTypes from '../utils/message-types'
 import { canUseNotification, getStaticUrl } from '../utils/common-util'
 import {
   sendNextMessage,
   expireConversationMessage,
   getExpiredConversationMessage,
 } from '../utils/conversation-util'
+import { isMessageVisible, getMessageText } from '../utils/message-util'
 
 const notificationCache = []
 
@@ -45,23 +47,27 @@ const getServiceWorker = async (conversation, message) => {
 
 export const notifyNewMessage = (contact, conversation, message) => {
   if (canUseNotification()
-    && typeof message.content === 'string'
-    && Notification.permission === 'granted') {
-    getServiceWorker(conversation, message).then(registration => {
-      if (registration) {
-        const notification = {
-          tag: conversation.uuid,
-          body: message.content,
-          icon: getStaticUrl('/favicon/favicon-32x32.png'),
-          timestamp: message.timestamp,
+    && Notification.permission === 'granted'
+    && isMessageVisible(message)
+  ) {
+    const text = getMessageText(message)
+    if (text) {
+      getServiceWorker(conversation, message).then(registration => {
+        if (registration) {
+          const notification = {
+            tag: conversation.uuid,
+            body: text,
+            icon: getStaticUrl('/favicon/favicon-32x32.png'),
+            timestamp: message.timestamp,
+          }
+          notificationCache.push(notification)
+          registration.showNotification(
+            getNotificationMessage(contact, conversation),
+            notification
+          )
         }
-        notificationCache.push(notification)
-        registration.showNotification(
-          getNotificationMessage(contact, conversation),
-          notification
-        )
-      }
-    })
+      })
+    }
   }
 }
 
@@ -124,7 +130,7 @@ export const expireConversationMessages = (converseUuid, sortedMessages) => {
 export const appendConversationMessage = sink => message => {
   const { type, renewPair } = message.content
 
-  if (type === 'renewGroup') {
+  if (type === MessageTypes.RENEW_GROUP) {
     sink({
       type: ActionTypes.MESSAGE_APPEND,
       message: {

@@ -13,6 +13,7 @@ import {
 } from 'baconjs'
 import { LocationAction } from 'bdux-react-router'
 import ActionTypes from './action-types'
+import MessageTypes from '../utils/message-types'
 import { Sea } from '../utils/gun-util'
 import {
   createConversation,
@@ -33,7 +34,7 @@ export const sendRequest = (userPub, text) => mergeAll(
 
   fromCallback(callback => {
     const content = {
-      type: 'request',
+      type: MessageTypes.REQUEST,
       text,
     }
     sendMessageToUser(userPub, userPub, content, ({ message, err }) => {
@@ -87,7 +88,7 @@ export const amendRequest = (nextPair, conversePub, request) => {
   removeRequest(request)
   // send a message in the conversation to amend the next pair.
   sendNextMessage(nextPair, conversePub, {
-    type: 'amendRequest',
+    type: MessageTypes.AMEND_REQUEST,
     nextPair: request.nextPair,
   })
   // remove the request from request list store.
@@ -121,7 +122,7 @@ export const sendGroupRequests = (userPubs, loginPub, text) => mergeAll(
       combineAsArray(userPubs.map(userPub => (
         fromCallback(callback => {
           const content = {
-            type: 'request',
+            type: MessageTypes.REQUEST,
             adminPub: loginPub,
             memberPubs: [loginPub].concat(userPubs),
             nextPair,
