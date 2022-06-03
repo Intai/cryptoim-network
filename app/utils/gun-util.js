@@ -19,7 +19,7 @@ if (canUseDOM()) {
   Sea = Gun.SEA
   getGun = once(() => Gun({
     peers: [getGunUrl('/gun')],
-    localStorage: true,
+    localStorage: false,
   }))
 } else {
   // on server,
