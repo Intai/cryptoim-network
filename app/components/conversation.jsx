@@ -100,12 +100,6 @@ const Conversation = (props) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversation])
 
-  useEffect(() => () => {
-    dispatch(ConversationAction.deselectConversation())
-  // willUnmount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   useEffect(() => {
     // expiring messages is not urgent. debounce until message list is stable.
     clearTimeout(expireTimeoutRef.current)
