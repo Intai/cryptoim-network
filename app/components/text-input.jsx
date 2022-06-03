@@ -18,7 +18,7 @@ const Input = styled.input`
   border-radius: 0;
 `
 
-const TextInput = props => {
+const TextInput = React.forwardRef((props, ref) => {
   const { value: propsValue, onChange } = props
   const [value, setValue] = useState(propsValue)
 
@@ -35,13 +35,16 @@ const TextInput = props => {
 
   return (
     <Input
+      ref={ref}
       type="text"
       {...props}
       value={value}
       onChange={handleChange}
     />
   )
-}
+})
+
+TextInput.displayName = 'TextInput'
 
 TextInput.defaultProps = {
   value: '',

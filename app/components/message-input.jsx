@@ -1,6 +1,6 @@
 import { append, forEach, inc } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import styled from 'styled-components'
 import TextInput from './text-input'
 import FileInput from './file-input'
@@ -97,6 +97,7 @@ const getDataUrl = (func, file) => {
 const MessageInput = ({ conversation, messages, dispatch }) => {
   const [images, setImages] = useState([])
   const [version, setVersion] = useState(0)
+  const textInputRef = useRef()
 
   const handleSend = useCallback(e => {
     const formData = new FormData(e.target)
@@ -148,6 +149,8 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
 
       // increment verion to render a new file input.
       setVersion(inc)
+      // continue typing the text message.
+      textInputRef.current?.focus()
     }
   }, [])
 
@@ -159,6 +162,7 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
       />
 
       <MessageTextInput
+        ref={textInputRef}
         type="text"
         name="text"
         autoComplete="off"
