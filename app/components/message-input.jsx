@@ -2,7 +2,7 @@ import { append, forEach, inc } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
 import React, { useCallback, useRef, useState } from 'react'
 import styled from 'styled-components'
-import TextInput from './text-input'
+import TextArea from './text-area'
 import FileInput from './file-input'
 import Button from './button'
 import MessageInputImages from './message-input-images'
@@ -16,9 +16,10 @@ const MessageForm = styled.form`
   flex: 0 0 72px;
   display: flex;
   flex-wrap: wrap;
+  padding-top: 15px;
 `
 
-const MessageTextInput = styled(TextInput)`
+const MessageTextArea = styled(TextArea)`
   flex: 1;
   margin-bottom: 30px;
   overflow: hidden;
@@ -26,15 +27,23 @@ const MessageTextInput = styled(TextInput)`
 
 const MessageButton = styled(Button)`
   flex: 0 0 auto;
+  align-self: end;
   margin-bottom: 30px;
+  height: 42px;
   width: 70px;
 `
 
-const ImageFileInput = styled(FileInput)`
+const ImageFileInputWrap = styled.div`
   ${inputBackground}
   flex: 0 0 auto;
   margin: 0 0 30px 0;
+  display: flex;
+  align-items: end;
+`
+
+const ImageFileInput = styled(FileInput)`
   padding: 12px 15px 12px 10px;
+  margin: 0;
   width: auto;
   max-width: none;
   border: none;
@@ -97,12 +106,12 @@ const getDataUrl = (func, file) => {
 const MessageInput = ({ conversation, messages, dispatch }) => {
   const [images, setImages] = useState([])
   const [version, setVersion] = useState(0)
-  const textInputRef = useRef()
+  const textAreaRef = useRef()
 
   const handleSend = useCallback(e => {
-    const formData = new FormData(e.target)
+    const form = e.target.form || e.target
+    const formData = new FormData(form)
     const text = formData.get('text')
-    const input = e.currentTarget.querySelector('input')
     const hasImages = images.length > 0
 
     if (text || hasImages) {
@@ -123,10 +132,8 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
         dispatch(MessageAction.sendMessage(nextPair, conversation.conversePub, content))
         // clear the attached images.
         setImages([])
-        // clear the text input.
-        if (input) {
-          input.value = ''
-        }
+        // clear the text area.
+        textAreaRef.current?.clear()
       }
     }
     e.preventDefault()
@@ -150,7 +157,7 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
       // increment verion to render a new file input.
       setVersion(inc)
       // continue typing the text message.
-      textInputRef.current?.focus()
+      textAreaRef.current?.focus()
     }
   }, [])
 
@@ -161,25 +168,28 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
         setImages={setImages}
       />
 
-      <MessageTextInput
-        ref={textInputRef}
+      <MessageTextArea
+        ref={textAreaRef}
         type="text"
         name="text"
         autoComplete="off"
         placeholder="Text message"
+        onSubmit={handleSend}
       />
 
-      <ImageFileInput
-        key={version}
-        accept="image/*"
-        multiple
-        onChange={handleAttachImage}
-      >
-        <ImageIcon
-          src={getStaticUrl('/icons/image.svg')}
-          title="Attach images"
-        />
-      </ImageFileInput>
+      <ImageFileInputWrap>
+        <ImageFileInput
+          key={version}
+          accept="image/*"
+          multiple
+          onChange={handleAttachImage}
+        >
+          <ImageIcon
+            src={getStaticUrl('/icons/image.svg')}
+            title="Attach images"
+          />
+        </ImageFileInput>
+      </ImageFileInputWrap>
 
       <MessageButton type="submit">
         {'Send'}

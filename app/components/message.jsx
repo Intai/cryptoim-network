@@ -9,10 +9,6 @@ import { isMessageVisible, getMessageText, getMessageImages } from '../utils/mes
 const MessageListItem = styled.li`
   ${({ isMine }) => isMine && 'text-align: right;'}
   display: block;
-
-  &:last-child {
-    margin-bottom: 15px;
-  }
 `
 
 const Label = styled.div`
@@ -27,6 +23,7 @@ const Content = styled.div`
   margin-top: 5px;
   text-align: left;
   max-width: 80%;
+  white-space: pre-wrap;
   ${({ isMine }) => isMine && 'background: rgba(16, 124, 241, 0.25);'}
   ${({ isSameContact }) => isSameContact && 'margin-top: 0;'}
 `
