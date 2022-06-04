@@ -31,7 +31,7 @@ export const getNextPair = (conversation, messages) => {
 
 export const isMessageVisible = message => (
   typeof message.content === 'string'
-    || message.content.type === MessageTypes.IMAGES
+    || message.content.type === MessageTypes.RICH
 )
 
 export const getMessageText = message => (

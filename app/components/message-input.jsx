@@ -123,7 +123,7 @@ const MessageInput = ({ conversation, messages, dispatch }) => {
         const content = !hasImages
           ? text
           : {
-            type: MessageTypes.IMAGES,
+            type: MessageTypes.RICH,
             images,
             text,
           }
