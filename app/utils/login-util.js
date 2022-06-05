@@ -1,4 +1,5 @@
 import { juxt, once, test, T } from 'ramda'
+import { getLocalStorage, jsonParse } from './common-util'
 import { Sea, getGun, gunOnce } from './gun-util'
 
 export const getAuthPair = (() => {
@@ -8,6 +9,12 @@ export const getAuthPair = (() => {
   const subscribe = once(() => {
     getGun().on('auth', ack => {
       authPair = ack.sea
+
+      // keep the auth pair in local storage.
+      const storage = getLocalStorage()
+      if (storage.setItem) {
+        storage.setItem('pair', JSON.stringify(authPair))
+      }
 
       // if there is a queue waiting for the pair,
       // trigger all the callback functions.
@@ -46,7 +53,12 @@ export const hasUser = (alias, cb) => {
 }
 
 export const recall = cb => {
-  getAuthUser().recall({ sessionStorage: true })
+  // custom implementation instead of recall({ sessionStorage: true })
+  // because safari clears session storage when navigating by address bar.
+  const storage = getLocalStorage()
+  if (storage.pair) {
+    getAuthUser().auth(jsonParse(storage.pair))
+  }
 
   if (getAuthUser().is) {
     getAuthUser().on(gunOnce(T, data => {
@@ -170,6 +182,12 @@ export const setUserName = name => {
 export const leave = () => {
   getAuthUser()
     .leave()
+
+  // clear auth pair from local storage.
+  const storage = getLocalStorage()
+  if (storage.removeItem) {
+    storage.removeItem('pair')
+  }
 
   // tell server to start rendering the login page.
   document.cookie = ''
