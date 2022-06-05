@@ -107,7 +107,7 @@ const countEncryptPub = messages => messages.reduce(
 
 const isSingleExpired = counts => ({ encryptPub, timestamp }) => (
   // if the message is older than 90 days.
-  timestamp < Date.now() - 1000 * 60 * 60 * 24 * 90
+  timestamp && timestamp < Date.now() - 1000 * 60 * 60 * 24 * 90
     // and there is no sibling in the tree of messages.
     && counts[encryptPub] === 1
 )

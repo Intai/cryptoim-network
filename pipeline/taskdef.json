@@ -20,7 +20,7 @@
           "value": "<CONTAINER_IMAGE_NODEJS>"
         },
         {
-          "name": "AWS_S3_BUCKET",
+          "name": "AWS_S3_BUCKET_DISABLED",
           "value": "radata-cyphrim"
         },
         {
