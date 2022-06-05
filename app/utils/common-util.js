@@ -21,6 +21,9 @@ export const canUseNotification = once(() => (
 
 export const canUseUserMedia = once(() => (
   canUseDOM()
+    && 'MediaRecorder' in window
+    && MediaRecorder.isTypeSupported('audio/webm')
+    && 'mediaDevices' in navigator
     && !!navigator.mediaDevices?.getUserMedia
 ))
 

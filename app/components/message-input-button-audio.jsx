@@ -90,8 +90,8 @@ const createRecorder = () => {
     start: async () => {
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
       mediaRecorder = new MediaRecorder(mediaStream, {
-        audioBitsPerSecond: 32000,
-        bitsPerSecond: 32000,
+        audioBitsPerSecond: 16000,
+        mimeType: 'audio/webm;codecs="opus"',
       })
 
       return new Promise(resolve => {
@@ -103,7 +103,7 @@ const createRecorder = () => {
 
         const handleStop = () => {
           // create blob from the audio chunks.
-          const blob = new Blob(audioChunks, { type : 'audio/mp4;codecs="mp4a.ad"' })
+          const blob = new Blob(audioChunks, { type : 'audio/webm' })
           // generate data url for the blob.
           const reader = new FileReader()
           reader.onloadend = () => resolve(reader.result)

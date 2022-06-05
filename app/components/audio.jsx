@@ -1,7 +1,9 @@
 import { inc } from 'ramda'
 import React, { useCallback, useRef, useState } from 'react'
 import styled from 'styled-components'
-import { getStaticUrl } from '../utils/common-util'
+import { fontSmall } from './typography'
+import { inputBackground } from './color'
+import { canUseUserMedia, getStaticUrl } from '../utils/common-util'
 
 const AudioWrap = styled.div`
   font-size: 0;
@@ -37,6 +39,37 @@ const WaveformIcon = styled.img`
   opacity: 0.5;
 `
 
+const InfoIcon = styled.img`
+  height: 16px;
+  width: 16px;
+`
+
+const InfoTooltip = styled.div`
+  ${fontSmall}
+  ${inputBackground}
+  color: #000;
+  position: absolute;
+  top: -2px;
+  right: -60px;
+  display: none;
+  white-space: pre-wrap;
+  padding: 10px;
+  width: 152px;
+  box-sizing: border-box;
+  pointer-events: none;
+`
+
+const InfoContainer = styled.div`
+  display: inline-block;
+  vertical-align: top;
+  margin: 2px 45px 0 9px;
+  position: relative;
+
+  &:hover >${InfoTooltip} {
+    display: block;
+  }
+`
+
 const getIconVariant = (variant) => (
   variant === 'input'
     ? '-dark'
@@ -70,6 +103,25 @@ const Audio = ({
   const handleUpdate = useCallback(() => {
     forceUpdate(inc)
   }, [])
+
+  if (!canUseUserMedia()) {
+    return (
+      <AudioWrap className={className}>
+        <WaveformIcon src={getStaticUrl(`/icons/waveform${iconVariant}.svg`)} />
+        <WaveformIcon src={getStaticUrl(`/icons/waveform${iconVariant}.svg`)} />
+
+        <InfoContainer>
+          <InfoIcon
+            src={getStaticUrl('/icons/circle-info.svg')}
+            alt="Audio message is not supported"
+          />
+          <InfoTooltip>
+            {'Audio message is not supported on this device'}
+          </InfoTooltip>
+        </InfoContainer>
+      </AudioWrap>
+    )
+  }
 
   return (
     <AudioWrap className={className}>
