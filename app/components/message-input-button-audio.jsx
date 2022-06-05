@@ -100,7 +100,7 @@ const createRecorder = () => {
 
         const handleStop = () => {
           // create blob from the audio chunks.
-          const blob = new Blob(audioChunks, { type : 'audio/ogg; codecs=opus' })
+          const blob = new Blob(audioChunks, { type : 'audio/mp4' })
           // generate data url for the blob.
           const reader = new FileReader()
           reader.onloadend = () => resolve(reader.result)
@@ -130,7 +130,7 @@ const createRecorder = () => {
 
 const getCountdown = startTimestamp => (
   startTimestamp > 0
-    ? 15 - parseInt((Date.now() - startTimestamp) / 1000, 10)
+    ? 20 - parseInt((Date.now() - startTimestamp) / 1000, 10)
     : 0
 )
 
