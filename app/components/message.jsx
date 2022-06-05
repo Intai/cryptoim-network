@@ -1,10 +1,11 @@
 import { find, propEq } from 'ramda'
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
-import MessageInputImages from './message-images'
+import MessageAudio from './message-audio'
+import MessageImages from './message-images'
 import { tertiaryBackground, secondaryText } from './color'
 import { fontSmall } from './typography'
-import { isMessageVisible, getMessageText, getMessageImages } from '../utils/message-util'
+import { isMessageVisible, getMessageText, getMessageAudio, getMessageImages } from '../utils/message-util'
 
 const MessageListItem = styled.li`
   ${({ isMine }) => isMine && 'text-align: right;'}
@@ -58,6 +59,7 @@ const Message = ({ login, contacts, message, prev }) => {
   const isMine = fromPub === loginPub
   const isSameContact = prev?.fromPub === fromPub && prev && isMessageVisible(prev)
   const images = getMessageImages(message)
+  const audio = getMessageAudio(message)
 
   const contact = useMemo(() => (
     find(propEq('pub', fromPub), contacts)
@@ -79,7 +81,8 @@ const Message = ({ login, contacts, message, prev }) => {
         isMine={isMine}
         isSameContact={isSameContact}
       >
-        <MessageInputImages images={images} />
+        <MessageImages images={images} />
+        <MessageAudio audio={audio} timestamp={timestamp} />
         {getMessageText(message)}
         <Timestamp>{getLocalDateString(timestamp)}</Timestamp>
       </Content>

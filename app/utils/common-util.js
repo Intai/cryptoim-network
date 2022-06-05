@@ -19,6 +19,11 @@ export const canUseNotification = once(() => (
     && 'serviceWorker' in navigator
 ))
 
+export const canUseUserMedia = once(() => (
+  canUseDOM()
+    && !!navigator.mediaDevices?.getUserMedia
+))
+
 const getEnv = () => (
   canUseDOM()
     ? window.env

@@ -43,3 +43,11 @@ export const getMessageText = message => (
 export const getMessageImages = message => (
   message.content.images
 )
+
+export const getMessageAudio = message => (
+  message.content.audio
+)
+
+export const getAudioFileName = (date) => (
+  `CyphrIM ${date.toISOString().replace('.', '_')}`
+)
