@@ -90,7 +90,8 @@ const createRecorder = () => {
     start: async () => {
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
       mediaRecorder = new MediaRecorder(mediaStream, {
-        audioBitsPerSecond: 16000,
+        audioBitsPerSecond: 32000,
+        bitsPerSecond: 32000,
       })
 
       return new Promise(resolve => {
