@@ -100,7 +100,7 @@ const createRecorder = () => {
 
         const handleStop = () => {
           // create blob from the audio chunks.
-          const blob = new Blob(audioChunks, { type : 'audio/mp4' })
+          const blob = new Blob(audioChunks, { type : 'audio/mp4;codecs="mp4a.ad"' })
           // generate data url for the blob.
           const reader = new FileReader()
           reader.onloadend = () => resolve(reader.result)
