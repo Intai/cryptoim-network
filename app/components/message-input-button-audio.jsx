@@ -89,7 +89,9 @@ const createRecorder = () => {
   return {
     start: async () => {
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      mediaRecorder = new MediaRecorder(mediaStream)
+      mediaRecorder = new MediaRecorder(mediaStream, {
+        audioBitsPerSecond: 16000,
+      })
 
       return new Promise(resolve => {
         const audioChunks = []
