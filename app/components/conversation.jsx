@@ -104,7 +104,7 @@ const Conversation = (props) => {
     // expiring messages is not urgent. debounce until message list is stable.
     clearTimeout(expireTimeoutRef.current)
     expireTimeoutRef.current = setTimeout(() => {
-      dispatch(MessageAction.expireConversationMessages(converseUuid, filteredMessages))
+      // dispatch(MessageAction.expireConversationMessages(converseUuid, filteredMessages))
     }, 1000)
 
     return () => {
