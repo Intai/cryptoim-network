@@ -61,11 +61,12 @@ export const recall = cb => {
   }
 
   if (getAuthUser().is) {
-    getAuthUser().on(gunOnce(T, data => {
-      getAuthPair(pair => {
-        if (data) {
-          const { name, auth, pub } = data
-          const alias = data.alias || getAuthUser().is.alias || null
+    getAuthUser().on(gunOnce(T, user => {
+      getAuthPair(authPair => {
+        const pair = authPair || storage.pair || null
+        if (user) {
+          const { name, auth, pub } = user
+          const alias = user.alias || getAuthUser().is.alias || null
           cb({
             alias,
             name: name || (alias && alias === pub && 'Anonymous') || null,
