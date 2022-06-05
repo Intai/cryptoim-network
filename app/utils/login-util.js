@@ -68,16 +68,10 @@ export const recall = cb => {
           const alias = data.alias || getAuthUser().is.alias || null
           cb({
             alias,
-            name: name || null,
+            name: name || (alias && alias === pub && 'Anonymous') || null,
             auth,
             pair,
           })
-
-          // if there is no name specified,
-          // and alias is just the public key.
-          if (!name && alias && alias === pub) {
-            getAuthUser().get('name').put('Anonymous')
-          }
         } else {
           cb({
             alias: getAuthUser().is.alias,
