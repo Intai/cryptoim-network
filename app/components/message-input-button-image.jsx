@@ -61,7 +61,7 @@ const resizeImageElementToDataUrl = img => {
   let dataUrl = canvas.toDataURL('image/webp', 0.5)
   if (dataUrl.indexOf('data:image/webp') < 0) {
     // fallback to jpeg if webp is not supported.
-    dataUrl = canvas.toDataURL('image/jpeg', 0.25)
+    dataUrl = canvas.toDataURL('image/jpeg', 0.2)
   }
   return dataUrl
 }
