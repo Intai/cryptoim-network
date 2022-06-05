@@ -130,7 +130,7 @@ const createRecorder = () => {
 
 const getCountdown = startTimestamp => (
   startTimestamp > 0
-    ? 20 - parseInt((Date.now() - startTimestamp) / 1000, 10)
+    ? 15 - parseInt((Date.now() - startTimestamp) / 1000, 10)
     : 0
 )
 
