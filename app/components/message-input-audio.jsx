@@ -45,7 +45,7 @@ const MessageInputAudio = ({ audio, setAudio }) => {
         />
         <RemoveIcon
           src={getStaticUrl('/icons/xmark.svg')}
-          title="Remove the image"
+          title="Remove the audio message"
           onClick={handleRemoveAudio}
         />
       </AudioInner>

@@ -12,6 +12,11 @@ const PlayIcon = styled.img`
   width: 15px;
   margin-right: 5px;
   cursor: pointer;
+  transition: transform linear 100ms;
+
+  &:hover {
+    transform: scale(1.3);
+  }
 `
 
 const PauseIcon = styled.img`
@@ -19,6 +24,11 @@ const PauseIcon = styled.img`
   width: 15px;
   margin-right: 5px;
   cursor: pointer;
+  transition: transform linear 100ms;
+
+  &:hover {
+    transform: scale(1.3);
+  }
 `
 
 const WaveformIcon = styled.img`
