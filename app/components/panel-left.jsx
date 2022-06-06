@@ -1,11 +1,11 @@
 import React from 'react'
+import { createUseBdux } from 'bdux/hook'
 import {
   updateRouterLocation,
   Router,
   Routes,
   Route,
 } from 'bdux-react-router'
-import { createUseBdux } from 'bdux/hook'
 import PanelLeftLayout from './panel-left-layout'
 import * as ContactAction from '../actions/contact-action'
 import * as ConversationAction from '../actions/conversation-action'

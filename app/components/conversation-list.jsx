@@ -1,11 +1,10 @@
 import { sort } from 'ramda'
-import React, { useEffect, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useParams } from 'react-router'
 import styled from 'styled-components'
 import { createUseBdux } from 'bdux/hook'
 import ConversationListItem from './conversation-list-item'
 import { fontLarge } from './typography'
-import * as ConversationAction from '../actions/conversation-action'
 import LoginStore from '../stores/login-store'
 import ContactListStore from '../stores/contact-list-store'
 import ConversationListStore from '../stores/conversation-list-store'
@@ -37,15 +36,6 @@ const ConversationList = (props) => {
   const sortedConversations = useMemo(() => (
     sort(compareConversations, conversations)
   ), [conversations])
-
-  useEffect(() => {
-    if (!converseUuid) {
-      // todo:
-      // noticed dispatch doesn't work while unmounting.
-      // re-evaluate after fixing in bdux.
-      dispatch(ConversationAction.deselectConversation())
-    }
-  }, [converseUuid, dispatch])
 
   return conversations.length > 0 && (
     <>
