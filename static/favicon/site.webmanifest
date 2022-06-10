@@ -1,6 +1,17 @@
 {
-  "name": "",
-  "short_name": "",
+  "name": "CyphrIM",
+  "short_name": "CyphrIM",
+  "start_url": "https://cyphrim.com/conversations",
+  "shortcuts": [{
+    "name": "Scan their invite QR code",
+    "url": "/invite/scan"
+  }, {
+    "name": "My invite QR code",
+    "url": "/conversation/new"
+  }, {
+    "name": "Contacts",
+    "url": "/conversation/new"
+  }],
   "icons": [{
     "src": "android-chrome-192x192.png",
     "sizes": "192x192",
