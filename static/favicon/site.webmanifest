@@ -2,15 +2,34 @@
   "name": "CyphrIM",
   "short_name": "CyphrIM",
   "start_url": "https://cyphrim.com/conversations",
+  "url": "https://cyphrim.com",
+  "categories": [
+    "social"
+  ],
   "shortcuts": [{
     "name": "Scan their invite QR code",
-    "url": "/invite/scan"
+    "url": "/invite/scan",
+    "icons": [{
+      "src": "/static/icons/camera.svg",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }]
   }, {
     "name": "My invite QR code",
-    "url": "/conversation/new"
+    "url": "/conversation/new",
+    "icons": [{
+      "src": "/static/icons/qrcode.svg",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }]
   }, {
     "name": "Contacts",
-    "url": "/conversation/new"
+    "url": "/conversation/new",
+    "icons": [{
+      "src": "/static/icons/address-card.svg",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }]
   }],
   "icons": [{
     "src": "android-chrome-192x192.png",
