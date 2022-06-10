@@ -2,7 +2,8 @@
   "name": "CyphrIM",
   "short_name": "CyphrIM",
   "start_url": "https://cyphrim.com/conversations",
-  "url": "https://cyphrim.com",
+  "url": "https://cyphrim.com/",
+  "scope": "https://cyphrim.com/",
   "categories": [
     "social"
   ],
