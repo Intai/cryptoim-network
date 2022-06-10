@@ -1,9 +1,10 @@
 {
   "name": "CyphrIM",
   "short_name": "CyphrIM",
-  "start_url": "https://cyphrim.com/conversations",
+  "id": "https://cyphrim.com/",
   "url": "https://cyphrim.com/",
   "scope": "https://cyphrim.com/",
+  "start_url": "/conversations",
   "categories": [
     "social"
   ],
