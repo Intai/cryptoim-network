@@ -8,25 +8,25 @@
   ],
   "shortcuts": [{
     "name": "Scan their invite QR code",
-    "url": "/invite/scan",
+    "url": "https://cyphrim.com/invite/scan",
     "icons": [{
-      "src": "/static/icons/camera.svg",
+      "src": "https://cyphrim.com/static/icons/camera.svg",
       "type": "image/svg+xml",
       "purpose": "any"
     }]
   }, {
     "name": "My invite QR code",
-    "url": "/conversation/new",
+    "url": "https://cyphrim.com/conversation/new",
     "icons": [{
-      "src": "/static/icons/qrcode.svg",
+      "src": "https://cyphrim.com/static/icons/qrcode.svg",
       "type": "image/svg+xml",
       "purpose": "any"
     }]
   }, {
     "name": "Contacts",
-    "url": "/conversation/new",
+    "url": "https://cyphrim.com/conversation/new",
     "icons": [{
-      "src": "/static/icons/address-card.svg",
+      "src": "https://cyphrim.com/static/icons/address-card.svg",
       "type": "image/svg+xml",
       "purpose": "any"
     }]
