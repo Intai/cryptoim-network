@@ -1,6 +1,7 @@
 {
   "name": "CyphrIM",
   "short_name": "CyphrIM",
+  "description": "Messages are encrypted and signed by key pairs chained one after another. Synchronised peer-to-peer without server owning user data.",
   "id": "https://cyphrim.com/",
   "url": "https://cyphrim.com/",
   "scope": "https://cyphrim.com/",
@@ -33,16 +34,54 @@
       "type": "image/png"
     }]
   }],
+  "screenshots": [{
+    "src": "../screenshots/wide1.png",
+    "sizes": "2360x1640",
+    "type": "image/png",
+    "platform": "wide",
+    "label": "Homescreen"
+  }, {
+    "src": "../screenshots/wide2.png",
+    "sizes": "2360x1640",
+    "type": "image/png",
+    "platform": "wide",
+    "label": "Conversation"
+  }, {
+    "src": "../screenshots/narrow1.png",
+    "sizes": "1170x2532",
+    "type": "image/png",
+    "platform": "narrow",
+    "label": "Homescreen"
+  }, {
+    "src": "../screenshots/narrow2.png",
+    "sizes": "1170x2532",
+    "type": "image/png",
+    "platform": "narrow",
+    "label": "Conversation"
+  }],
   "icons": [{
     "src": "android-chrome-192x192.png",
     "sizes": "192x192",
-    "type": "image/png"
+    "type": "image/png",
+    "purpose": "any"
+  }, {
+    "src": "android-maskable-192x192.png",
+    "sizes": "192x192",
+    "type": "image/png",
+    "purpose": "maskable"
   }, {
     "src": "android-chrome-512x512.png",
     "sizes": "512x512",
-    "type": "image/png"
+    "type": "image/png",
+    "purpose": "any"
+  }, {
+    "src": "android-maskable-512x512.png",
+    "sizes": "512x512",
+    "type": "image/png",
+    "purpose": "maskable"
   }],
   "theme_color": "#202124",
   "background_color": "#202124",
-  "display": "standalone"
+  "display": "standalone",
+  "orientation": "any"
 }
