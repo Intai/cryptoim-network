@@ -27,6 +27,10 @@ const getMessage = (forPair, fromPair, queryDays, cb) => {
       '.': {
         '*': `${forPair.pub}-${queryDays}`,
       },
+      // todo:
+      // noticed somehow gun only sync single record from indexedDB
+      // without limiting the number of bytes under 100000.
+      '%': 100000,
     })
     .map()
     .on((json, _key, _msg, _ev) => {
