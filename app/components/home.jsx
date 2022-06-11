@@ -7,7 +7,7 @@ import PanelHeader from './panel-header'
 import PromoFeatures from './promo-features'
 import { scrollbar } from './scrollbar'
 import { isBreakpointUp } from '../hooks/responsive'
-import { getStaticUrl } from '../utils/common-util'
+import { getImageUrl } from '../utils/common-util'
 
 const Scrollbar = styled.div`
   ${scrollbar}
@@ -43,7 +43,7 @@ const Home = props => {
       <PanelHeader />
       <Scrollbar>
         <Container>
-          <Logo src={getStaticUrl('/images/logo.png')} />
+          <Logo src={getImageUrl('/logo.png')} />
           <PromoFeatures />
           <ContinueButton
             type="button"

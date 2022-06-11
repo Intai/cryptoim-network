@@ -12,7 +12,7 @@
     "name": "Scan their invite QR code",
     "url": "/invite/scan",
     "icons": [{
-      "src": "/static/shortcuts/camera.png",
+      "src": "../shortcuts/camera.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
@@ -21,7 +21,7 @@
     "name": "My invite QR code",
     "url": "/conversation/new",
     "icons": [{
-      "src": "/static/shortcuts/qrcode.png",
+      "src": "../shortcuts/qrcode.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
@@ -30,7 +30,7 @@
     "name": "Contacts",
     "url": "/conversation/new",
     "icons": [{
-      "src": "/static/shortcuts/address-card.png",
+      "src": "../shortcuts/address-card.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"

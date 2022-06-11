@@ -9,7 +9,7 @@ import LoginScan from './login-scan'
 import PromoFeatures from './promo-features'
 import { primaryBackground, alertBackground, secondaryBorder } from './color'
 import { isBreakpointUp } from '../hooks/responsive'
-import { getStaticUrl } from '../utils/common-util'
+import { getImageUrl } from '../utils/common-util'
 import { isStrongPassword } from '../utils/login-util'
 import * as LoginAction from '../actions/login-action'
 
@@ -153,7 +153,7 @@ const Login = (props) => {
   return login && (
     <Container>
       <LoginContainer>
-        <Logo src={getStaticUrl('/images/logo.png')} />
+        <Logo src={getImageUrl('/logo.png')} />
         <LoginForm onSubmit={handleLogin}>
           <Button
             type="button"
