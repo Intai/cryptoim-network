@@ -14,8 +14,7 @@
     "icons": [{
       "src": "../shortcuts/camera.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     }]
   }, {
     "name": "My invite QR code",
@@ -23,8 +22,7 @@
     "icons": [{
       "src": "../shortcuts/qrcode.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     }]
   }, {
     "name": "Contacts",
@@ -32,8 +30,7 @@
     "icons": [{
       "src": "../shortcuts/address-card.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     }]
   }],
   "icons": [{
