@@ -126,6 +126,7 @@
         "Visibility": "PRIVATE",
         "LogsConfig": {
           "CloudWatchLogs": {
+            "GroupName": "/aws/codebuild/cyphrim",
             "Status": "ENABLED"
           },
           "S3Logs": {
@@ -133,6 +134,13 @@
             "EncryptionDisabled": false
           }
         }
+      }
+    },
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/cyphrim",
+        "RetentionInDays": 7
       }
     }
   },
